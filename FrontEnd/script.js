@@ -1,19 +1,20 @@
-// ÉTAPE 1.1 : RECUPERATION DES TRAVAUX DEPUIS LE BACK-END
-// Récupération de la liste des projets depuis l'API
-const reponse = await fetch("http://localhost:5678/api/works");
-const projets = await reponse.json();
+// ÉTAPE 1.1 : Créer la page de présentation des travaux à partir du HTML existant (Récupération dynamique de la liste des projets depuis l'API)
 
-// Création et utilisation de la fonction de génération des cartes projets sur la base de l'API
+// Chargement de la liste des projets depuis l'API
+const reponse_proj = await fetch("http://localhost:5678/api/works");
+const projets = await reponse_proj.json();
+
+// Définition de la fonction de génération des cartes projets sur la base des données de l'API
 function genererProjets(projets) {
     // Suppression de l'affichage du contenu initial de la section projet (class="gallery") 
     let portfolioSection = document.getElementById("portfolio");
     let divProjet = portfolioSection.querySelector(".gallery");
     divProjet.innerHTML = "";
 
-    // Création et affichage du contenu de la section projet issue de l'API
+    // Réaffichage de la section projet = remplacement des images fixes par les images dynamiques issues de l'API
     for (let i = 0; i < projets.length; i++) {
 
-        const projetElement = document.createElement("figure");      // Création de la balise figure dédiée à un projet
+        const projetElement = document.createElement("figure");     // Création de la balise figure dédiée à un projet
 
         const imageElement = document.createElement("img");         // Création de l’élément img
         imageElement.src = projets[i].imageUrl;                     // Configuration de la source de l’image avec l’indice i de la liste projets
@@ -28,53 +29,59 @@ function genererProjets(projets) {
         divProjet.appendChild(projetElement);                       // Rattachement de la balise figure à la balise des projets (<div class="gallery">)
     }
 }
-genererProjets(projets);
 
+// Utilisation de la fonction "genererProjets" = génération dynamique des cartes projets
+genererProjets(projets);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// ÉTAPE 1.2 : RECUPERATION DES TRAVAUX DEPUIS LE BACK-END
-// Récupération de la liste des categories depuis l'API
+// ÉTAPE 1.2 : Créer la page de présentation des travaux à partir du HTML existant (Réalisation du filtre des travaux = Ajout des filtres pour afficher les travaux par catégorie)
+
+// Chargement de la liste des catégories depuis l'API
 const reponse_cat = await fetch("http://localhost:5678/api/categories");
 const categories = await reponse_cat.json();
 
-// Création de la fonction de filtre par catégorie
+// Définition de la fonction de filtrage par catégorie
 function filtrerParCatégories(nom_de_la_categorie) {
-    const projetsFiltrés = projets.filter(projets => projets.category.name === nom_de_la_categorie);
-    genererProjets(projetsFiltrés);
+    const projetsFiltrés = projets.filter(projets => projets.category.name === nom_de_la_categorie); // Filtrage de la liste des projets en fonction du nom de leurs catégories
+    genererProjets(projetsFiltrés);                                                                  // Réaffichage des projets après filtrage
 }
 
-// Création de la fonction de génération et d'affichage de la barre des filtres
+// Définition de la fonction de génération et d'affichage de la barre des filtres (contient la fonction "filtrerParCatégories")
 function genererBoutonsFiltres(categories) {
-    const categoriesList = document.createElement("ul");                        // Création de la balise ul qui contiendra les balises li (boutons Filtre)
+    const categoriesList = document.createElement("ul");                                            // Création de la balise ul qui contiendra les balises li (boutons Filtre)
     categoriesList.id = "filter-bar";
 
-    const boutonElement = document.createElement("li");                         // Création de la balise li dédiée à un filtre
-    boutonElement.innerText = "Tous";                                           // Configuration du bouton filtre "Tous"
-    boutonElement.className = "button-filter";                                  // Configuration du nom du bouton filtre avec l’indice i de la liste categories
-    boutonElement.id = "Tous"                                                   // Configuration de son id
-    boutonElement.addEventListener("click", () => genererProjets(projets));     // Affichage de l'intégralité des projets lors du clic sur le bouton filtre "Tous"
-    categoriesList.appendChild(boutonElement);                                  // Rattachement de la balise li à la balise de la liste des filtres (ul)
+    const boutonElement = document.createElement("li");                                             // Création de la balise li dédiée à un filtre
+    boutonElement.innerText = "Tous";                                                               // Configuration du bouton filtre "Tous"
+    boutonElement.className = "button-filter";                                                      // Configuration du nom du bouton filtre avec l’indice i de la liste categories
+    boutonElement.id = "Tous"                                                                       // Configuration de son id
+    boutonElement.addEventListener("click", () => genererProjets(projets));                         // Affichage de l'intégralité des projets lors du clic sur le bouton filtre "Tous"
+    categoriesList.appendChild(boutonElement);                                                      // Rattachement de la balise li à la balise de la liste des filtres (ul)
 
     for (let i = 0; i < categories.length; i++) {
-        const boutonElement = document.createElement("li");                     // Création de la balise li dédiée à un filtre
-        boutonElement.innerText = categories[i].name;                           // Configuration du nom du bouton filtre avec l’indice i de la liste categories
-        boutonElement.className = "button-filter";                              // Configuration du nom de la classe du bouton filtre précédé de la mention "button-filter"
-        boutonElement.id = categories[i].name;                                 // Configuration de son id
+        const boutonElement = document.createElement("li");                                         // Création de la balise li dédiée à un filtre
+        boutonElement.innerText = categories[i].name;                                               // Configuration du nom du bouton filtre avec l’indice i de la liste categories
+        boutonElement.className = "button-filter";                                                  // Configuration du nom de la classe du bouton filtre précédé de la mention "button-filter"
+        boutonElement.id = categories[i].name;                                                      // Configuration de son id
         boutonElement.addEventListener("click", () => filtrerParCatégories(categories[i].name));    // Affichage des projets filtrés lors du clic sur le bouton filtre correspondant
-        categoriesList.appendChild(boutonElement);                              // Rattachement de la balise li à la balise de la liste des filtres (ul)
+        categoriesList.appendChild(boutonElement);                                                  // Rattachement de la balise li à la balise de la liste des filtres (ul)
     }
 
-    let portfolioSection = document.getElementById("portfolio");                // Rattachement de la balise ul à la balise des projets
-    portfolioSection.insertBefore(categoriesList, portfolioSection.children[1]);// Placement des filtres avant la liste des projets                        
+    let portfolioSection = document.getElementById("portfolio");                                    // Rattachement de la balise ul à la balise des projets
+    portfolioSection.insertBefore(categoriesList, portfolioSection.children[1]);                    // Placement de la barre des filtres avant les cartes des projets                        
 }
-genererBoutonsFiltres(categories)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ÉTAPE 2 :  INTÉGRATION DU DESIGN DE LA PAGE DE FORMULAIRE ET AUTHENTIFICATION DE L'UTILISATEUR
+// Mise en marche du lien cliquable "Login" de la barre de navigation
+const loginMenu = document.getElementById("menu-login");
+loginMenu.addEventListener("click", () => AffichageLogin())
 
-// ÉTAPE 2.1 :  INTÉGRATION DU DESIGN DE LA PAGE DE FORMULAIRE
-// Création de la fonction d'affichage de la page "Login"
-function affichageLogin() {
+// Définition de la fonction "AffichageLogin" = 
+// * création de l'affichage de la page login (dont le bouton "Se connecter")
+// * exécution de la fonction "SeConnecterLogin" (voir fonction suivante)
+function AffichageLogin() {
     // Suppression de l'affichage du contenu <main>
     const mainElement = document.querySelector("main");
     mainElement.innerHTML = "";
@@ -130,83 +137,143 @@ function affichageLogin() {
     forgotten_password.innerText = "Mot de passe oublié"
     divElement.appendChild(forgotten_password);
 
-    // Ajout de la fonction listener lors du clic sur le bouton "Login"
-    ajoutListenerLogin()
+    // Ajout de la fonction de connexion à la partie "Edition" du site lors du clic sur le bouton "Login"
+    SeConnecterLogin()
 }
 
-// Mise en marche du lien cliquable "Login" de la barre de navigation
-const loginMenu = document.getElementById("menu-login");
-loginMenu.addEventListener("click", () => affichageLogin())
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// ÉTAPE 2.2 :  AUTHENTIFICATION DE L’UTILISATEUR
-// Création de la fonction de connexion "ajoutListenerLogin"
-function ajoutListenerLogin(sauvegardeMain) {
+// Définition de la fonction de connexion "SeConnecterLogin" = 
+// * listener sur le bouton "Se connecter" de la page "login"
+// * récupération des valeurs saisies (email et mdp)
+// * test de connexion avec ces valeurs : succès = sauvegarde du token et retour à la page principale, échec = affichage d'un message d'erreur
+// * sauvegarde du résultat du test de connextion dans le localstorage
+function SeConnecterLogin() {
     const formulaireLogin = document.getElementById("form-login");          // Recherche du formulaire de connexion
-    formulaireLogin.addEventListener("submit", function (event) {           // Définition de la fonction à appeler lors du clic sur le bouton "Se connecter"
+    formulaireLogin.addEventListener("submit", async function (event) {     // Définition de la fonction à appeler lors du clic sur le bouton "Se connecter"
         event.preventDefault();                                             // Empeche la page de se rafraichir lors du clic sur le bouton submit ("Se connecter")
         const IdPwLogin = {                                                 // Récupération des valeurs rentrés pour l'email et le mot de passe
             "email": document.getElementById("email-input").value,
             "password": document.getElementById("password-input").value
         }
+        const chargeUtile = JSON.stringify(IdPwLogin);                      // Mise en forme des informations de connexion au format JSON
 
-        // Création de la charge utile au format JSON
-        const chargeUtile = JSON.stringify(IdPwLogin);
-        console.log(chargeUtile);
+        // Lancement d'un try pour se connecter à l'API avec les données de connexion saisie
 
+        // Si le try réussi, 2 cas de  figures en fonction du statut de la connexion :
+        // si la connexion réussie, récupération du token de connexion et rechargement immédiat de la page principale. 
+        // si la connexion échoue, affichage d'un message d'erreur et rechargement de la page principale après un léger délai.
         try {
-            fetch("http://localhost:5678/api/users/login", {
+            const reponse_log = await fetch("http://localhost:5678/api/users/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: chargeUtile
             });
-            localStorage.setItem("modificationsAppliquees", "true");
-            window.location.href = "index.html";
 
-            if (localStorage.getItem("modificationsAppliquees") === "true") {
-                // Suppression de l'affichage du login
-                document.getElementById("div-login").style.display = "none";
+            const data = await reponse_log.json(); // Extraction des données JSON
 
-                // Retructuration du header existant
-                const header = document.querySelector("header");
-                header.id = "headerEdition";
-
-                const EditionModeBar = document.createElement("div");   // Création de la balise <div> contenant le bandeau
-                EditionModeBar.id = "EditionModeBar";
-                header.insertBefore(EditionModeBar, header.firstChild); // Insertion de la première balise <div> dans le header
-
-                const HeaderSecondDiv = document.createElement("div");  // Création de la balise <div> contenant le titre et la barre de navigation
-                HeaderSecondDiv.id = "HeaderSecondDiv";
-                const h1Element = document.querySelector("h1");
-                const navElement = document.querySelector("nav");
-                HeaderSecondDiv.appendChild(h1Element);                 // Insertion du titre dans la seconde balise
-                HeaderSecondDiv.appendChild(navElement);                // Insertion de la barre de navigation dans la seconde balise
-                header.appendChild(HeaderSecondDiv);                    // Insertion de la seconde balise dans le header
-
-                // Création et intégration du bandeau 
-                const EditionModeBarText = document.createElement("p"); // Ajout d'un paragraphe pour afficher le texte "Mode édition" 
-                EditionModeBarText.id = "EditionModeBarText";
-                EditionModeBarText.innerText = '<i class="fa-solid fa-pen-to-square"></i> Mode édition';
-                EditionModeBar.appendChild(EditionModeBarText);         // Ajout du paragraphe dans la balise <div> du headers
-
-
-                // Réinitialiser l'indicateur pour éviter la répétition
-                localStorage.removeItem("modificationsAppliquees");
+            // Si la connexion réussie :
+            if (reponse_log.ok) {
+                localStorage.setItem("ConnexionReussie", "true");                                    // Stockage du statut "réussite" de la connexion
+                localStorage.setItem("authToken", data.token);                                      // Stockage du token de connexion
+                window.location.href = "index.html";                                                // Rechargement instantanée de la page principale
             }
-
-        } catch (error) {
-            let errorLoginMessage = document.getElementById("errorLoginMessage");
-            if (!errorLoginMessage) {
-                localStorage.setItem("modificationsAppliquees", "false");
-
-                const errorLoginMessage = document.createElement("p");
-                errorLoginMessage.id = "errorLoginMessage";
-                errorLoginMessage.innerText = "Erreur dans l’identifiant ou le mot de passe";
-                const formElement = document.getElementById("form-login");
-                formElement.insertBefore(errorLoginMessage, formElement.lastChild);
+            // Si la connexion échoue :
+            else {
+                localStorage.setItem("ConnexionReussie", "false");                                   // Stockage du statut "échec" de la connexion
+                let errorLoginMessage = document.getElementById("errorLoginMessage");
+                if (!errorLoginMessage) {                                                           // Cette fonction si permet l'affichage du message d'erreur 
+                    const errorLoginMessage = document.createElement("p");                          // Elle évite aussi le suraffichage du message d'erreur en cas de spam du bouton "Se connecter"
+                    errorLoginMessage.id = "errorLoginMessage";
+                    errorLoginMessage.innerText = "Erreur dans l’identifiant ou le mot de passe";
+                    const formElement = document.getElementById("form-login");
+                    formElement.insertBefore(errorLoginMessage, formElement.lastChild);
+                }
+                setTimeout(() => {
+                    window.location.href = "index.html";                                            // Rechargement de la page après un léger délai pour que l'utilisateur puisse lire le message d'erreur
+                }, "1200");
             }
+        }
+
+        // Si le try échoue, récupération de l'erreur et affichage du message d'erreur
+        catch (error) {
             console.log(error);
         }
     });
+}
+
+// Chargement de la page HTML en fonction du statut de connexion (voir fonction SeConnecterLogin)
+if (localStorage.ConnexionReussie === "true") {
+    // Succès de la connexion =
+    // * Fermeture de la page de connexion
+    if (document.getElementById("div-login")) {
+        document.getElementById("div-login").style.display = "none";
+    }
+
+    // * Affichage du bandeau "Mode édition" dans le header (= restructuration du header existant pour y intégrer le bandeau)
+    const header = document.querySelector("header");                // Sélection du header existant
+    header.id = "HeaderEdition";                                    // Attribution d'un id pour lui attribuer un style différent du header initial
+
+    const EditionModeBar = document.createElement("div");           // Création du premier conteneur qui contiendra le bandeau
+    EditionModeBar.id = "EditionModeBar";                           // Attribution de son identifiant "EditionModeBar"
+    header.insertBefore(EditionModeBar, header.firstChild);         // Insertion du premier conteneur dans le header
+
+    const HeaderSecondDiv = document.createElement("div");          // Création du second conteneur qui contiendra le titre et la barre de navigation
+    HeaderSecondDiv.id = "HeaderSecondDiv";                         // Attribution de son identifiant "HeaderSecondDiv"
+    const h1Element = document.querySelector("h1");                 // Sélection du titre à mettre dans le conteneur
+    const navElement = document.querySelector("nav");               // Sélection de la barre de navigation à mettre dans le conteneur
+    HeaderSecondDiv.appendChild(h1Element);                         // Insertion du titre dans le second conteneur
+    HeaderSecondDiv.appendChild(navElement);                        // Insertion de la barre de navigation dans le second conteneur
+    header.appendChild(HeaderSecondDiv);                            // Insertion du second conteneur dans le header
+
+    const EditionModeBarText = document.createElement("p");         // Ajout d'un paragraphe pour afficher le texte "Mode édition" dans le bandeau
+    EditionModeBarText.id = "EditionModeBarText";
+    EditionModeBarText.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Mode édition';    // Ajout de l'icône et du texte dans le bandeau
+    EditionModeBar.appendChild(EditionModeBarText);                 // Ajout du paragraphe dans la balise <div> du headers
+
+    // * Affichage du bouton "Modifier" pour gérer les projets
+    const MesProjetsModifierDiv = document.createElement("div");
+    MesProjetsModifierDiv.id = "MesProjetsModifierDiv";
+
+    const portfolioSection = document.getElementById("portfolio");
+    const MesProjets = portfolioSection.querySelector("h2");
+    MesProjetsModifierDiv.appendChild(MesProjets);
+
+    const ModifierProjets = document.createElement("p");
+    ModifierProjets.id = "ModifierProjets";
+    ModifierProjets.innerHTML = '<i class="fa-regular fa-pen-to-square"></i> modifier';
+    MesProjetsModifierDiv.appendChild(ModifierProjets);
+
+    portfolioSection.insertBefore(MesProjetsModifierDiv, portfolioSection.firstChild);
+
+    // * Mise en marche du lien cliquable "Modifier" pour la gestion des projets
+    ModifierProjets.addEventListener("click", () => AffichageGaleriePhoto())
+
+    function AffichageGaleriePhoto() {
+        document.getElementById("GaleriePhoto").display.flex;
+    }
+
+
+    // * Affichage : remplacement du bouton "Login par un bouton "Logout"
+    let Logout = document.getElementById("menu-login");             // Sélection du bouton "login" de la barre de recherche
+    Logout.id = "menu-logout";                                      // Attribution de l'id "logout"
+    Logout.innerText = "logout";                                    // Changement du contenu en "logout"
+
+    // Mise en marche du lien cliquable "Login" de la barre de navigation
+    const logoutMenu = document.getElementById("menu-logout");
+    logoutMenu.addEventListener("click", () => AffichageLogout())
+
+    function AffichageLogout() {
+        window.location.href = "index.html";
+    }
+
+    // * Suppression du résultat du test de connexion
+    localStorage.removeItem("ConnexionReussie");
+}
+else {
+    // Échec de la connexion =
+
+    // Génération des boutons filtres
+    genererBoutonsFiltres(categories)
+
+    // Suppression du résultat du test de connexion
+    localStorage.removeItem("ConnexionReussie");
 }

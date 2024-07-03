@@ -370,8 +370,8 @@ footer nav ul {
 	border: solid 1px red;
 }
 
-/* Header du mode édition*/
-#headerEdition {
+/* Header du mode édition */
+#HeaderEdition {
 	display: flex;
 	flex-direction: column;
 	margin-top: 0;
@@ -390,4 +390,16 @@ footer nav ul {
 	display: flex;
 	justify-content: space-between;
 	margin: 50px 0
+}
+
+/* Bouton "modifier" pour la gestion des projets*/
+#MesProjetsModifierDiv {
+	display: flex;
+	justify-content: center;
+	position: relative;
+}
+
+#ModifierProjets {
+	position: absolute;
+	margin:  10px 0 0 300px;
 }
