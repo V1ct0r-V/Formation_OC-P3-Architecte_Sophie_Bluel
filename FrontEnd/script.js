@@ -245,12 +245,60 @@ if (localStorage.ConnexionReussie === "true") {
     portfolioSection.insertBefore(MesProjetsModifierDiv, portfolioSection.firstChild);
 
     // * Mise en marche du lien cliquable "Modifier" pour la gestion des projets
-    ModifierProjets.addEventListener("click", () => AffichageGaleriePhoto())
+    ModifierProjets.addEventListener("click", () => AffichageModale())
 
-    function AffichageGaleriePhoto() {
-        document.getElementById("GaleriePhoto").display.flex;
+    async function AffichageModale() {
+        // Affichage de l'overlay et de la modale
+        const overlay = document.getElementById("overlay");
+        overlay.style.display = "flex";
+        const modale = document.getElementById("modale");
+        modale.style.display = "flex";
+
+        // Chargement de la liste des projets depuis l'API
+        const reponse_proj = await fetch("http://localhost:5678/api/works");
+        const projets = await reponse_proj.json();
+
+        // Définition de la fonction de mise à jour de l'affichage des cartes projets sur la base des données de l'API
+        function UpdateProjetsModale(projets) {
+            // Suppression de l'affichage du contenu initial de la section projet de la modale
+            let modale_main = document.getElementById("modale_main");
+            modale_main.innerHTML = "";
+
+            // Réaffichage de la section projet = ajout des images dynamiques issues de l'API
+            for (let i = 0; i < projets.length; i++) {
+
+                const figureElement = document.createElement("figure");     // Création de la balise figure dédiée à un projet
+                figureElement.id = "figure_" + `${projets[i].id}`;
+                modale_main.appendChild(figureElement);
+
+                const imageElement = document.createElement("img");         // Création de l’élément img
+                imageElement.src = projets[i].imageUrl;                     // Configuration de la source de l’image avec l’indice i de la liste projets
+                imageElement.id = "image_" + `${projets[i].id}`;
+                figureElement.appendChild(imageElement);                    // Rattachement de l’image à figureElement (la balise figure)
+
+                const trashDiv = document.createElement("div");         // Création de l’élément img
+                trashDiv.className = "trash-div";
+                trashDiv.id = "div_" + `${projets[i].id}`;
+                trashDiv.innerHTML = '<i class="fa-solid fa-trash-can"></i>';                     // Configuration de la source de l’image avec l’indice i de la liste projets
+                figureElement.appendChild(trashDiv);                    // Rattachement de l’image à figureElement (la balise figure)
+
+                modale_main.appendChild(figureElement);                       // Rattachement de la balise figure à la balise des projets (<div class="gallery">)
+            }
+        }
+        UpdateProjetsModale(projets)
     }
 
+    // * Mise en marche de la fermeture de la modale par un clic sur la croix de fermeture ou sur l'overlay :
+    const overlay = document.getElementById("overlay");
+    overlay.addEventListener("click", () => FermetureModale());
+
+    const modale_cross = document.querySelector(".fa-xmark");
+    modale_cross.addEventListener("click", () => FermetureModale());
+
+    function FermetureModale() {
+        document.getElementById("overlay").style.display = "none";
+        document.getElementById("modale").style.display = "none";
+    }
 
     // * Affichage : remplacement du bouton "Login par un bouton "Logout"
     let Logout = document.getElementById("menu-login");             // Sélection du bouton "login" de la barre de recherche
@@ -265,6 +313,93 @@ if (localStorage.ConnexionReussie === "true") {
         window.location.href = "index.html";
     }
 
+    // * Mise en marche du lien cliquable "Ajouter une photo" pour la gestion des projets
+    const modale_button = document.getElementById("modale_button");
+    modale_button.addEventListener("click", () => AffichageAjoutPhoto())
+
+    async function AffichageAjoutPhoto() {
+        // Suppression du contenu du modale_main
+        let modale_main = document.getElementById("modale_main");
+        modale_main.innerHTML = "";
+
+        // Ajout de l'icone "Précédent"
+        let modale_header = document.getElementById("modale_header");
+        let previous_icon = document.createElement("i");
+        previous_icon.className = "fa-solid fa-arrow-left";
+        modale_header.insertBefore(previous_icon, modale_header.firstChild)
+
+        modale_header.style.justifyContent = "space-between";
+
+        // Changement du titre de la modale
+        let titre = document.getElementById("modale_title_h3");
+        titre.innerText = "Ajout photo";
+
+        // Chargement du contenu du "modale_main"
+        let form_modale = document.createElement("form");
+        form_modale.id = "form_modale";
+        let chargement_photo_div = document.createElement("div");
+        chargement_photo_div.id = "chargement_photo_div";
+        form_modale.appendChild(chargement_photo_div);
+
+        let IconeImage = document.createElement("i");
+        IconeImage.id = "IconeImage";
+        IconeImage.className = "fa-regular fa-image";
+        chargement_photo_div.appendChild(IconeImage);
+
+        let AjouterPhotoBouton = document.createElement("p");
+        AjouterPhotoBouton.id = "AjouterPhotoBouton";
+        AjouterPhotoBouton.innerText = "+ Ajouter photo";
+        chargement_photo_div.appendChild(AjouterPhotoBouton);
+
+        let InfoTailleImage = document.createElement("p");
+        InfoTailleImage.id = "InfoTailleImage";
+        InfoTailleImage.innerText = "jpg,png : 4mo max";
+        chargement_photo_div.appendChild(InfoTailleImage);
+
+        let titre_label = document.createElement("label");
+        titre_label.setAttribute('for', "titre");
+        titre_label.innerText = "Titre";
+        form_modale.appendChild(titre_label);
+
+        let titre_input = document.createElement("input");
+        titre_input.setAttribute('type', "text");
+        titre_input.setAttribute('id', "titre");
+        titre_input.setAttribute('name', "titre");
+        titre_input.className = "form_input";
+        form_modale.appendChild(titre_input);
+
+        let categorie_label = document.createElement("label");
+        categorie_label.innerText = "Catégorie";
+        form_modale.appendChild(categorie_label);
+
+        let categorie_select = document.createElement("select");
+        categorie_select.setAttribute('name', "categorie");
+        categorie_select.setAttribute('id', "categorie");
+        categorie_select.className = "form_input";
+        form_modale.appendChild(categorie_select);
+
+        const reponse_cat = await fetch("http://localhost:5678/api/categories");
+        const categories = await reponse_cat.json();
+
+        let categorie_option_base = document.createElement("option");
+        categorie_option_base.setAttribute('value', "");
+        categorie_select.appendChild(categorie_option_base);
+
+        for (let i = 0; i < categories.length; i++){
+            let categories_option = document.createElement("option");
+            categories_option.setAttribute('value', categories[i].name);
+            categories_option.innerText = categories[i].name;
+            categorie_select.appendChild(categories_option);
+        }
+
+        modale_main.appendChild(form_modale);
+
+        // Changement du bouton
+        let valider_bouton = document.getElementById("modale_button");
+        valider_bouton.id = "valider_bouton";
+        valider_bouton.innerText = "Valider";
+    }
+
     // * Suppression du résultat du test de connexion
     localStorage.removeItem("ConnexionReussie");
 }
@@ -277,3 +412,6 @@ else {
     // Suppression du résultat du test de connexion
     localStorage.removeItem("ConnexionReussie");
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ÉTAPE 3 :  
