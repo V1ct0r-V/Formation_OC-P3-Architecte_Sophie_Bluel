@@ -13,7 +13,6 @@ function genererProjets(projets) {
 
     // Réaffichage de la section projet = remplacement des images fixes par les images dynamiques issues de l'API
     for (let i = 0; i < projets.length; i++) {
-
         const projetElement = document.createElement("figure");     // Création de la balise figure dédiée à un projet
 
         const imageElement = document.createElement("img");         // Création de l’élément img
@@ -34,7 +33,6 @@ function genererProjets(projets) {
 genererProjets(projets);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 // ÉTAPE 1.2 : Créer la page de présentation des travaux à partir du HTML existant (Réalisation du filtre des travaux = Ajout des filtres pour afficher les travaux par catégorie)
 
 // Chargement de la liste des catégories depuis l'API
@@ -74,6 +72,7 @@ function genererBoutonsFiltres(categories) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ÉTAPE 2 :  INTÉGRATION DU DESIGN DE LA PAGE DE FORMULAIRE ET AUTHENTIFICATION DE L'UTILISATEUR
+
 // Mise en marche du lien cliquable "Login" de la barre de navigation
 const loginMenu = document.getElementById("menu-login");
 loginMenu.addEventListener("click", () => AffichageLogin())
@@ -121,7 +120,7 @@ function AffichageLogin() {
 
     const passwordInput = document.createElement("input");
     passwordInput.className = "login-input";
-    passwordInput.type = "text";
+    passwordInput.type = "password";
     passwordInput.name = "password";
     passwordInput.id = "password-input";
     formElement.appendChild(passwordInput);
@@ -172,13 +171,13 @@ function SeConnecterLogin() {
 
             // Si la connexion réussie :
             if (reponse_log.ok) {
-                localStorage.setItem("ConnexionReussie", "true");                                    // Stockage du statut "réussite" de la connexion
+                localStorage.setItem("ConnexionReussie", true);                                    // Stockage du statut "réussite" de la connexion
                 localStorage.setItem("authToken", data.token);                                      // Stockage du token de connexion
                 window.location.href = "index.html";                                                // Rechargement instantanée de la page principale
             }
             // Si la connexion échoue :
             else {
-                localStorage.setItem("ConnexionReussie", "false");                                   // Stockage du statut "échec" de la connexion
+                localStorage.setItem("ConnexionReussie", false);                                   // Stockage du statut "échec" de la connexion
                 let errorLoginMessage = document.getElementById("errorLoginMessage");
                 if (!errorLoginMessage) {                                                           // Cette fonction si permet l'affichage du message d'erreur 
                     const errorLoginMessage = document.createElement("p");                          // Elle évite aussi le suraffichage du message d'erreur en cas de spam du bouton "Se connecter"
@@ -187,6 +186,7 @@ function SeConnecterLogin() {
                     const formElement = document.getElementById("form-login");
                     formElement.insertBefore(errorLoginMessage, formElement.lastChild);
                 }
+
                 setTimeout(() => {
                     window.location.href = "index.html";                                            // Rechargement de la page après un léger délai pour que l'utilisateur puisse lire le message d'erreur
                 }, "1200");
@@ -199,7 +199,7 @@ function SeConnecterLogin() {
         }
     });
 }
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Chargement de la page HTML en fonction du statut de connexion (voir fonction SeConnecterLogin)
 if (localStorage.ConnexionReussie === "true") {
     // Succès de la connexion =
@@ -229,6 +229,20 @@ if (localStorage.ConnexionReussie === "true") {
     EditionModeBarText.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Mode édition';    // Ajout de l'icône et du texte dans le bandeau
     EditionModeBar.appendChild(EditionModeBarText);                 // Ajout du paragraphe dans la balise <div> du headers
 
+    // * Affichage : remplacement du bouton "Login par un bouton "Logout"
+    let Logout = document.getElementById("menu-login");             // Sélection du bouton "login" de la barre de recherche
+    Logout.id = "menu-logout";                                      // Attribution de l'id "logout"
+    Logout.innerText = "logout";                                    // Changement du contenu en "logout"
+
+    // Mise en marche du lien cliquable "Logout" de la barre de navigation
+    const logoutMenu = document.getElementById("menu-logout");
+    logoutMenu.addEventListener("click", () => AffichageLogout())
+
+    function AffichageLogout() {
+        localStorage.setItem("authToken", "");
+        window.location.href = "index.html";
+    }
+
     // * Affichage du bouton "Modifier" pour gérer les projets
     const MesProjetsModifierDiv = document.createElement("div");
     MesProjetsModifierDiv.id = "MesProjetsModifierDiv";
@@ -245,14 +259,34 @@ if (localStorage.ConnexionReussie === "true") {
     portfolioSection.insertBefore(MesProjetsModifierDiv, portfolioSection.firstChild);
 
     // * Mise en marche du lien cliquable "Modifier" pour la gestion des projets
-    ModifierProjets.addEventListener("click", () => AffichageModale())
+    ModifierProjets.addEventListener("click", () => AffichagePremiereModale())
 
-    async function AffichageModale() {
+    async function AffichagePremiereModale() {
         // Affichage de l'overlay et de la modale
         const overlay = document.getElementById("overlay");
         overlay.style.display = "flex";
         const modale = document.getElementById("modale");
         modale.style.display = "flex";
+
+        // Suppression des modifications suite à un retour éventuel à la première modale
+        if (document.querySelector(".fa-arrow-left")) {
+            // Suppression du bouton retour
+            document.querySelector(".fa-arrow-left").style.display = "none";
+            modale_header.style.justifyContent = "flex-end";
+
+            // Changement du titre : Ajout photo => Galerie photo
+            document.getElementById("modale_title_h3").innerText = "Galerie photo";
+        }
+
+        // Bouton Valider redevient bouton Ajouter une photo
+        if (document.getElementById("valider_button")) {
+            const modale_button = document.getElementById("valider_button");
+            modale_button.innerText = "Ajouter une photo";
+            modale_button.removeEventListener("click", () => ValidationNouveauProjet());
+            modale_button.addEventListener("click", () => AffichageSecondeModale());
+            modale_button.classList = "";
+            modale_button.id = "modale_button";
+        }
 
         // Chargement de la liste des projets depuis l'API
         const reponse_proj = await fetch("http://localhost:5678/api/works");
@@ -290,128 +324,185 @@ if (localStorage.ConnexionReussie === "true") {
 
     // * Mise en marche de la fermeture de la modale par un clic sur la croix de fermeture ou sur l'overlay :
     const overlay = document.getElementById("overlay");
-    overlay.addEventListener("click", () => FermetureModale());
+    overlay.addEventListener("click", () => FermetureDesModales());
 
     const modale_cross = document.querySelector(".fa-xmark");
-    modale_cross.addEventListener("click", () => FermetureModale());
+    modale_cross.addEventListener("click", () => FermetureDesModales());
 
-    function FermetureModale() {
+    function FermetureDesModales() {
+        AffichagePremiereModale();
         document.getElementById("overlay").style.display = "none";
         document.getElementById("modale").style.display = "none";
     }
 
-    // * Affichage : remplacement du bouton "Login par un bouton "Logout"
-    let Logout = document.getElementById("menu-login");             // Sélection du bouton "login" de la barre de recherche
-    Logout.id = "menu-logout";                                      // Attribution de l'id "logout"
-    Logout.innerText = "logout";                                    // Changement du contenu en "logout"
-
-    // Mise en marche du lien cliquable "Login" de la barre de navigation
-    const logoutMenu = document.getElementById("menu-logout");
-    logoutMenu.addEventListener("click", () => AffichageLogout())
-
-    function AffichageLogout() {
-        window.location.href = "index.html";
-    }
-
-    // * Mise en marche du lien cliquable "Ajouter une photo" pour la gestion des projets
+    // * Mise en marche du lien cliquable "Ajouter une photo" pour la gestion des projets (ouverture deuxième modale)
     const modale_button = document.getElementById("modale_button");
-    modale_button.addEventListener("click", () => AffichageAjoutPhoto())
+    modale_button.addEventListener("click", () => AffichageSecondeModale())
 
-    async function AffichageAjoutPhoto() {
+    async function AffichageSecondeModale() {
+
         // Suppression du contenu du modale_main
         let modale_main = document.getElementById("modale_main");
         modale_main.innerHTML = "";
 
         // Ajout de l'icone "Précédent"
-        let modale_header = document.getElementById("modale_header");
-        let previous_icon = document.createElement("i");
-        previous_icon.className = "fa-solid fa-arrow-left";
-        modale_header.insertBefore(previous_icon, modale_header.firstChild)
+        if (!document.getElementById("previous_icon")) {
+            let modale_header = document.getElementById("modale_header");
+            let previous_icon = document.createElement("i");
+            previous_icon.id = "previous_icon";
+            previous_icon.className = "fa-solid fa-arrow-left";
+            modale_header.insertBefore(previous_icon, modale_header.firstChild)
 
-        modale_header.style.justifyContent = "space-between";
+            modale_header.style.justifyContent = "space-between";
 
-        // Changement du titre de la modale
-        let titre = document.getElementById("modale_title_h3");
-        titre.innerText = "Ajout photo";
+            // Mise en marche du lien cliquable "Retour" pour revenir à la première modale
+            previous_icon.addEventListener("click", () => BoutonRetourModale());
 
-        // Chargement du contenu du "modale_main"
-        let form_modale = document.createElement("form");
-        form_modale.id = "form_modale";
-        let chargement_photo_div = document.createElement("div");
-        chargement_photo_div.id = "chargement_photo_div";
-        form_modale.appendChild(chargement_photo_div);
+            async function BoutonRetourModale() {
+                AffichagePremiereModale();
+            }
 
-        let IconeImage = document.createElement("i");
-        IconeImage.id = "IconeImage";
-        IconeImage.className = "fa-regular fa-image";
-        chargement_photo_div.appendChild(IconeImage);
-
-        let AjouterPhotoBouton = document.createElement("p");
-        AjouterPhotoBouton.id = "AjouterPhotoBouton";
-        AjouterPhotoBouton.innerText = "+ Ajouter photo";
-        chargement_photo_div.appendChild(AjouterPhotoBouton);
-
-        let InfoTailleImage = document.createElement("p");
-        InfoTailleImage.id = "InfoTailleImage";
-        InfoTailleImage.innerText = "jpg,png : 4mo max";
-        chargement_photo_div.appendChild(InfoTailleImage);
-
-        let titre_label = document.createElement("label");
-        titre_label.setAttribute('for', "titre");
-        titre_label.innerText = "Titre";
-        form_modale.appendChild(titre_label);
-
-        let titre_input = document.createElement("input");
-        titre_input.setAttribute('type', "text");
-        titre_input.setAttribute('id', "titre");
-        titre_input.setAttribute('name', "titre");
-        titre_input.className = "form_input";
-        form_modale.appendChild(titre_input);
-
-        let categorie_label = document.createElement("label");
-        categorie_label.innerText = "Catégorie";
-        form_modale.appendChild(categorie_label);
-
-        let categorie_select = document.createElement("select");
-        categorie_select.setAttribute('name', "categorie");
-        categorie_select.setAttribute('id', "categorie");
-        categorie_select.className = "form_input";
-        form_modale.appendChild(categorie_select);
-
-        const reponse_cat = await fetch("http://localhost:5678/api/categories");
-        const categories = await reponse_cat.json();
-
-        let categorie_option_base = document.createElement("option");
-        categorie_option_base.setAttribute('value', "");
-        categorie_select.appendChild(categorie_option_base);
-
-        for (let i = 0; i < categories.length; i++){
-            let categories_option = document.createElement("option");
-            categories_option.setAttribute('value', categories[i].name);
-            categories_option.innerText = categories[i].name;
-            categorie_select.appendChild(categories_option);
+            // Changement du titre de la modale
+            let titre = document.getElementById("modale_title_h3");
+            titre.innerText = "Ajout photo";
         }
 
-        modale_main.appendChild(form_modale);
+        // Chargement du contenu du "modale_main" :
+        // 1ere partie : Chargement de la photo (encadré bleu)
+        if (!document.getElementById('form_modale')) {
+            debugger;
+            let form_modale = document.createElement("form");
+            form_modale.id = "form_modale";
 
-        // Changement du bouton
-        let valider_bouton = document.getElementById("modale_button");
-        valider_bouton.id = "valider_bouton";
-        valider_bouton.innerText = "Valider";
+            let chargement_photo_div = document.createElement("div");
+            chargement_photo_div.id = "chargement_photo_div";
+            form_modale.appendChild(chargement_photo_div);
+
+            let IconeImage = document.createElement("i");
+            IconeImage.id = "IconeImage";
+            IconeImage.className = "fa-regular fa-image";
+            chargement_photo_div.appendChild(IconeImage);
+
+            let AjouterPhotoDiv = document.createElement("div");
+            AjouterPhotoDiv.id = "AjouterPhotoDiv";
+            chargement_photo_div.appendChild(AjouterPhotoDiv);
+
+            let AjouterPhotoBouton = document.createElement("p");
+            AjouterPhotoBouton.id = "AjouterPhotoBouton";
+            AjouterPhotoBouton.innerText = "+ Ajouter une photo";
+            AjouterPhotoDiv.appendChild(AjouterPhotoBouton);
+
+            let AjouterPhotoInput = document.createElement("input");
+            AjouterPhotoInput.id = "AjouterPhotoInput";
+            AjouterPhotoInput.type = "file";
+            AjouterPhotoDiv.appendChild(AjouterPhotoInput);
+
+            let InfoTailleImage = document.createElement("p");
+            InfoTailleImage.id = "InfoTailleImage";
+            InfoTailleImage.innerText = "jpg,png : 4mo max";
+            chargement_photo_div.appendChild(InfoTailleImage);
+
+            let titre_label = document.createElement("label");
+            titre_label.setAttribute('for', "titre");
+            titre_label.innerText = "Titre";
+            form_modale.appendChild(titre_label);
+
+            // 2ème partie : Titre de la photo
+            let titre_input = document.createElement("input");
+            titre_input.setAttribute('type', "text");
+            titre_input.setAttribute('id', "titre");
+            titre_input.setAttribute('name', "titre");
+            titre_input.className = "form_input";
+            form_modale.appendChild(titre_input);
+
+            // 3ème partie : Menu déroulant de la catégorie de la photo
+            let categorie_label = document.createElement("label");
+            categorie_label.innerText = "Catégorie";
+            form_modale.appendChild(categorie_label);
+
+            let categorie_select = document.createElement("select");
+            categorie_select.setAttribute('name', "categorie");
+            categorie_select.setAttribute('id', "categorie");
+            categorie_select.className = "form_input";
+            form_modale.appendChild(categorie_select);
+
+            const reponse_cat = await fetch("http://localhost:5678/api/categories");
+            const categories = await reponse_cat.json();
+
+            let categorie_option_base = document.createElement("option");
+            categorie_option_base.setAttribute('value', "");
+            categorie_select.appendChild(categorie_option_base);
+
+            for (let i = 0; i < categories.length; i++) {
+                let categories_option = document.createElement("option");
+                categories_option.setAttribute('value', categories[i].name);
+                categories_option.innerText = categories[i].name;
+                categorie_select.appendChild(categories_option);
+            }
+
+            modale_main.appendChild(form_modale);
+
+            // Mise en marche du bouton "+ AjoutPhoto"
+            AjouterPhotoInput.addEventListener("change", () => {
+                IconeImage.style.display = "none";
+                AjouterPhotoDiv.style.display = "none";
+                AjouterPhotoBouton.style.display = "none";
+                InfoTailleImage.style.display = "none";
+
+                let reader = new FileReader();
+                reader.readAsDataURL(AjouterPhotoInput.files[0])
+                reader.addEventListener("load", () => {
+                    chargement_photo_div.innerHTML = `<img id="ApercuImage" src=${reader.result} alt=""/>`;
+                })
+            });
+
+
+            // Changement du bouton "Ajout photo" => "Valider"
+            if (document.getElementById("modale_button")) {
+                let valider_button = document.getElementById("modale_button");
+                valider_button.removeEventListener("click", () => AffichageSecondeModale());
+                valider_button.innerText = "Valider";
+                valider_button.classList.add('gris');
+                valider_button.addEventListener("click", () => ValidationNouveauProjet());
+                valider_button.id = "valider_button";
+            }
+
+            function ValidationNouveauProjet() {
+                // Faire l'ajout et le call API
+                console.log("La validation fonctionne");
+            }
+
+            //  Couleur du bouton de validation : 
+            const imgInput = document.getElementById('AjouterPhotoInput')
+            const titreInput = document.getElementById('titre');
+            const categoriesInput = document.getElementById('categorie');
+            const valider_button = document.getElementById('valider_button');
+
+            function updateButtonColor() {
+                if (imgInput.value !== '' && titreInput.value !== '' && categoriesInput.value !== '') {
+                    valider_button.classList.remove('gris');
+                    valider_button.classList.add('vert');
+                } else {
+                    valider_button.classList.remove('vert');
+                    valider_button.classList.add('gris');
+                }
+            }
+
+            imgInput.addEventListener('input', updateButtonColor);
+            titreInput.addEventListener('input', updateButtonColor);
+            categoriesInput.addEventListener('input', updateButtonColor);
+        }
     }
 
     // * Suppression du résultat du test de connexion
     localStorage.removeItem("ConnexionReussie");
 }
+
 else {
     // Échec de la connexion =
-
-    // Génération des boutons filtres
+    // * Génération des boutons filtres
     genererBoutonsFiltres(categories)
 
-    // Suppression du résultat du test de connexion
+    // * Suppression du résultat du test de connexion
     localStorage.removeItem("ConnexionReussie");
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ÉTAPE 3 :  
