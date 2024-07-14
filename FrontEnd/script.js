@@ -1,11 +1,13 @@
-// ÉTAPE 1.1 : Créer la page de présentation des travaux à partir du HTML existant (Récupération dynamique de la liste des projets depuis l'API)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ÉTAPE 1 - CRÉER LA PAGE DE PRÉSENTATION DES TRAVAUX À PARTIR DU HTML EXISTANT
+// ÉTAPE 1.1 - 𝘙𝘦́𝘤𝘶𝘱𝘦́𝘳𝘢𝘵𝘪𝘰𝘯 𝘥𝘺𝘯𝘢𝘮𝘪𝘲𝘶𝘦 𝘥𝘦 𝘭𝘢 𝘭𝘪𝘴𝘵𝘦 𝘥𝘦𝘴 𝘱𝘳𝘰𝘫𝘦𝘵𝘴 𝘥𝘦𝘱𝘶𝘪𝘴 𝘭'𝘈𝘗𝘐
 
 // Chargement de la liste des projets depuis l'API
-const reponse_proj = await fetch("http://localhost:5678/api/works");
-const projets = await reponse_proj.json();
+const reponse_proj_init = await fetch("http://localhost:5678/api/works");
+const projets_init = await reponse_proj_init.json();
 
-// Définition de la fonction de génération des cartes projets sur la base des données de l'API
-function genererProjets(projets) {
+// Définition de la fonction d'affichage dynamique des cartes projets sur la base des données de l'API
+function AffichageDynamiqueDesProjets(projets) {
     // Suppression de l'affichage du contenu initial de la section projet (class="gallery") 
     let portfolioSection = document.getElementById("portfolio");
     let divProjet = portfolioSection.querySelector(".gallery");
@@ -28,25 +30,22 @@ function genererProjets(projets) {
         divProjet.appendChild(projetElement);                       // Rattachement de la balise figure à la balise des projets (<div class="gallery">)
     }
 }
+AffichageDynamiqueDesProjets(projets_init);
 
-// Utilisation de la fonction "genererProjets" = génération dynamique des cartes projets
-genererProjets(projets);
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ÉTAPE 1.2 : Créer la page de présentation des travaux à partir du HTML existant (Réalisation du filtre des travaux = Ajout des filtres pour afficher les travaux par catégorie)
+// ÉTAPE 1.2 - 𝘙𝘦́𝘢𝘭𝘪𝘴𝘢𝘵𝘪𝘰𝘯 𝘥𝘶 𝘧𝘪𝘭𝘵𝘳𝘦 𝘥𝘦𝘴 𝘵𝘳𝘢𝘷𝘢𝘶𝘹 : 𝘈𝘫𝘰𝘶𝘵 𝘥𝘦𝘴 𝘧𝘪𝘭𝘵𝘳𝘦𝘴 𝘱𝘰𝘶𝘳 𝘢𝘧𝘧𝘪𝘤𝘩𝘦𝘳 𝘭𝘦𝘴 𝘵𝘳𝘢𝘷𝘢𝘶𝘹 𝘱𝘢𝘳 𝘤𝘢𝘵𝘦́𝘨𝘰𝘳𝘪𝘦
 
 // Chargement de la liste des catégories depuis l'API
 const reponse_cat = await fetch("http://localhost:5678/api/categories");
 const categories = await reponse_cat.json();
 
-// Définition de la fonction de filtrage par catégorie
-function filtrerParCatégories(nom_de_la_categorie) {
+// Définition de la fonction de filtrage des projets par catégories
+function FiltrerProjetsParCatégories(nom_de_la_categorie) {
     const projetsFiltrés = projets.filter(projets => projets.category.name === nom_de_la_categorie); // Filtrage de la liste des projets en fonction du nom de leurs catégories
-    genererProjets(projetsFiltrés);                                                                  // Réaffichage des projets après filtrage
+    AffichageDynamiqueDesProjets(projetsFiltrés);                                                                  // Réaffichage des projets après filtrage
 }
 
-// Définition de la fonction de génération et d'affichage de la barre des filtres (contient la fonction "filtrerParCatégories")
-function genererBoutonsFiltres(categories) {
+// Définition de la fonction d'affichage de la barre des filtres (contient la fonction "FiltrerProjetsParCatégories")
+function AffichageDesBoutonsFiltres(categories) {
     const categoriesList = document.createElement("ul");                                            // Création de la balise ul qui contiendra les balises li (boutons Filtre)
     categoriesList.id = "filter-bar";
 
@@ -54,7 +53,7 @@ function genererBoutonsFiltres(categories) {
     boutonElement.innerText = "Tous";                                                               // Configuration du bouton filtre "Tous"
     boutonElement.className = "button-filter";                                                      // Configuration du nom du bouton filtre avec l’indice i de la liste categories
     boutonElement.id = "Tous"                                                                       // Configuration de son id
-    boutonElement.addEventListener("click", () => genererProjets(projets));                         // Affichage de l'intégralité des projets lors du clic sur le bouton filtre "Tous"
+    boutonElement.addEventListener("click", () => AffichageDynamiqueDesProjets(projets));                         // Affichage de l'intégralité des projets lors du clic sur le bouton filtre "Tous"
     categoriesList.appendChild(boutonElement);                                                      // Rattachement de la balise li à la balise de la liste des filtres (ul)
 
     for (let i = 0; i < categories.length; i++) {
@@ -62,7 +61,7 @@ function genererBoutonsFiltres(categories) {
         boutonElement.innerText = categories[i].name;                                               // Configuration du nom du bouton filtre avec l’indice i de la liste categories
         boutonElement.className = "button-filter";                                                  // Configuration du nom de la classe du bouton filtre précédé de la mention "button-filter"
         boutonElement.id = categories[i].name;                                                      // Configuration de son id
-        boutonElement.addEventListener("click", () => filtrerParCatégories(categories[i].name));    // Affichage des projets filtrés lors du clic sur le bouton filtre correspondant
+        boutonElement.addEventListener("click", () => FiltrerProjetsParCatégories(categories[i].name));    // Affichage des projets filtrés lors du clic sur le bouton filtre correspondant
         categoriesList.appendChild(boutonElement);                                                  // Rattachement de la balise li à la balise de la liste des filtres (ul)
     }
 
@@ -71,16 +70,17 @@ function genererBoutonsFiltres(categories) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ÉTAPE 2 :  INTÉGRATION DU DESIGN DE LA PAGE DE FORMULAIRE ET AUTHENTIFICATION DE L'UTILISATEUR
+// ÉTAPE 2 :  CODAGE DE LA PAGE DE CONNEXION
+// ÉTAPE 2.1 - 𝘐𝘯𝘵𝘦́𝘨𝘳𝘢𝘵𝘪𝘰𝘯 𝘥𝘶 𝘥𝘦𝘴𝘪𝘨𝘯 𝘥𝘦 𝘭𝘢 𝘱𝘢𝘨𝘦 𝘥𝘦 𝘧𝘰𝘳𝘮𝘶𝘭𝘢𝘪𝘳𝘦
 
-// Mise en marche du lien cliquable "Login" de la barre de navigation
+// Mise en marche du lien "Login" de la barre de navigation
 const loginMenu = document.getElementById("menu-login");
-loginMenu.addEventListener("click", () => AffichageLogin())
+loginMenu.addEventListener("click", () => AffichageDeLaPageDeConnexion())
 
-// Définition de la fonction "AffichageLogin" = 
-// * création de l'affichage de la page login (dont le bouton "Se connecter")
-// * exécution de la fonction "SeConnecterLogin" (voir fonction suivante)
-function AffichageLogin() {
+// Définition de la fonction "AffichageDeLaPageDeConnexion" = 
+// * création de l'affichage de la page "Login"
+// * appel de la fonction "Se connecter" (voir description ci-dessous)
+function AffichageDeLaPageDeConnexion() {
     // Suppression de l'affichage du contenu <main>
     const mainElement = document.querySelector("main");
     mainElement.innerHTML = "";
@@ -136,16 +136,19 @@ function AffichageLogin() {
     forgotten_password.innerText = "Mot de passe oublié"
     divElement.appendChild(forgotten_password);
 
-    // Ajout de la fonction de connexion à la partie "Edition" du site lors du clic sur le bouton "Login"
-    SeConnecterLogin()
+    SeConnecter();
 }
 
-// Définition de la fonction de connexion "SeConnecterLogin" = 
-// * listener sur le bouton "Se connecter" de la page "login"
+// ÉTAPE 2.2 - 𝘈𝘶𝘵𝘩𝘦𝘯𝘵𝘪𝘧𝘪𝘤𝘢𝘵𝘪𝘰𝘯 𝘥𝘦 𝘭’𝘶𝘵𝘪𝘭𝘪𝘴𝘢𝘵𝘦𝘶𝘳
+
+// Définition de la fonction de connexion "SeConnecter" = 
+// * écouteur  sur le bouton "Se connecter" de la page "login"
 // * récupération des valeurs saisies (email et mdp)
-// * test de connexion avec ces valeurs : succès = sauvegarde du token et retour à la page principale, échec = affichage d'un message d'erreur
+// * test de connexion avec ces valeurs : 
+//      * succès = sauvegarde du token et accès à la page principale en mode "Edition"
+//      * échec  = affichage d'un message d'erreur et retour à la page principale initiale
 // * sauvegarde du résultat du test de connextion dans le localstorage
-function SeConnecterLogin() {
+function SeConnecter() {
     const formulaireLogin = document.getElementById("form-login");          // Recherche du formulaire de connexion
     formulaireLogin.addEventListener("submit", async function (event) {     // Définition de la fonction à appeler lors du clic sur le bouton "Se connecter"
         event.preventDefault();                                             // Empeche la page de se rafraichir lors du clic sur le bouton submit ("Se connecter")
@@ -155,11 +158,7 @@ function SeConnecterLogin() {
         }
         const chargeUtile = JSON.stringify(IdPwLogin);                      // Mise en forme des informations de connexion au format JSON
 
-        // Lancement d'un try pour se connecter à l'API avec les données de connexion saisie
-
-        // Si le try réussi, 2 cas de  figures en fonction du statut de la connexion :
-        // si la connexion réussie, récupération du token de connexion et rechargement immédiat de la page principale. 
-        // si la connexion échoue, affichage d'un message d'erreur et rechargement de la page principale après un léger délai.
+        // Lancement d'un try pour tenter de se connecter à l'API avec les données de connexion saisie
         try {
             const reponse_log = await fetch("http://localhost:5678/api/users/login", {
                 method: "POST",
@@ -168,16 +167,19 @@ function SeConnecterLogin() {
             });
 
             const data = await reponse_log.json(); // Extraction des données JSON
+            localStorage.clear();                                                                   // Réinitialisation du localStorage au début du code
 
             // Si la connexion réussie :
             if (reponse_log.ok) {
-                localStorage.setItem("ConnexionReussie", true);                                    // Stockage du statut "réussite" de la connexion
+                localStorage.setItem("ConnexionReussie", true);                                     // Stockage du statut "réussite" de la connexion
                 localStorage.setItem("authToken", data.token);                                      // Stockage du token de connexion
-                window.location.href = "index.html";                                                // Rechargement instantanée de la page principale
+                window.location.href = "index.html";                                                // Rechargement instantanée de la page principale en mode "Édition"
             }
+
             // Si la connexion échoue :
             else {
-                localStorage.setItem("ConnexionReussie", false);                                   // Stockage du statut "échec" de la connexion
+                localStorage.setItem("ConnexionReussie", false);                                    // Stockage du statut "échec" de la connexion
+                localStorage.setItem("authToken", "");                                              // Stockage d'un token vide
                 let errorLoginMessage = document.getElementById("errorLoginMessage");
                 if (!errorLoginMessage) {                                                           // Cette fonction si permet l'affichage du message d'erreur 
                     const errorLoginMessage = document.createElement("p");                          // Elle évite aussi le suraffichage du message d'erreur en cas de spam du bouton "Se connecter"
@@ -188,27 +190,30 @@ function SeConnecterLogin() {
                 }
 
                 setTimeout(() => {
-                    window.location.href = "index.html";                                            // Rechargement de la page après un léger délai pour que l'utilisateur puisse lire le message d'erreur
+                    window.location.href = "index.html";                                            // Rechargement de la page après un léger délai pour que l'utilisateur lise le message d'erreur
                 }, "1200");
             }
         }
 
-        // Si le try échoue, récupération de l'erreur et affichage du message d'erreur
+        // Si le try échoue pour d'autres raisons : 
         catch (error) {
-            console.log(error);
+            console.log(error);                                                                     // Récupération et affichage de l'erreur
         }
     });
 }
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Chargement de la page HTML en fonction du statut de connexion (voir fonction SeConnecterLogin)
+// ÉTAPE 3 :  AJOUTER LA MODALE
+// Chargement de la page HTML en fonction du statut de connexion (voir fonction SeConnecter)
 if (localStorage.ConnexionReussie === "true") {
     // Succès de la connexion =
-    // * Fermeture de la page de connexion
+
+    // * Fermeture de la page de connexion "Login"
     if (document.getElementById("div-login")) {
         document.getElementById("div-login").style.display = "none";
     }
 
-    // * Affichage du bandeau "Mode édition" dans le header (= restructuration du header existant pour y intégrer le bandeau)
+    // * Affichage : création du bandeau "Mode édition" dans le header
     const header = document.querySelector("header");                // Sélection du header existant
     header.id = "HeaderEdition";                                    // Attribution d'un id pour lui attribuer un style différent du header initial
 
@@ -234,16 +239,16 @@ if (localStorage.ConnexionReussie === "true") {
     Logout.id = "menu-logout";                                      // Attribution de l'id "logout"
     Logout.innerText = "logout";                                    // Changement du contenu en "logout"
 
-    // Mise en marche du lien cliquable "Logout" de la barre de navigation
+    // * Mise en marche du lien cliquable "Logout" de la barre de navigation (fonction SeDeconnecter)
     const logoutMenu = document.getElementById("menu-logout");
-    logoutMenu.addEventListener("click", () => AffichageLogout())
+    logoutMenu.addEventListener("click", () => SeDeconnecter())
 
-    function AffichageLogout() {
+    function SeDeconnecter() {
         localStorage.setItem("authToken", "");
         window.location.href = "index.html";
     }
 
-    // * Affichage du bouton "Modifier" pour gérer les projets
+    // * Affichage : création du bouton "Modifier" pour la gestion des projets
     const MesProjetsModifierDiv = document.createElement("div");
     MesProjetsModifierDiv.id = "MesProjetsModifierDiv";
 
@@ -258,7 +263,7 @@ if (localStorage.ConnexionReussie === "true") {
 
     portfolioSection.insertBefore(MesProjetsModifierDiv, portfolioSection.firstChild);
 
-    // * Mise en marche du lien cliquable "Modifier" pour la gestion des projets
+    // * Mise en marche du lien cliquable "Modifier" pour la gestion des projets (fonction AffichagePremiereModale)
     ModifierProjets.addEventListener("click", () => AffichagePremiereModale())
 
     async function AffichagePremiereModale() {
@@ -268,15 +273,20 @@ if (localStorage.ConnexionReussie === "true") {
         const modale = document.getElementById("modale");
         modale.style.display = "flex";
 
-        // Suppression des modifications suite à un retour éventuel à la première modale
+        // Suppression du formulaire de la seconde modale
+        if (document.getElementById('form_modale')) {
+            let form_modale = document.getElementById('form_modale');
+            form_modale.remove();
+        }
+
+        // Suppression du bouton retour
         if (document.querySelector(".fa-arrow-left")) {
-            // Suppression du bouton retour
             document.querySelector(".fa-arrow-left").style.display = "none";
             modale_header.style.justifyContent = "flex-end";
-
-            // Changement du titre : Ajout photo => Galerie photo
-            document.getElementById("modale_title_h3").innerText = "Galerie photo";
         }
+
+        // Changement du titre : Ajout photo => Galerie photo
+        document.getElementById("modale_title_h3").innerText = "Galerie photo";
 
         // Bouton Valider redevient bouton Ajouter une photo
         if (document.getElementById("valider_button")) {
@@ -286,6 +296,7 @@ if (localStorage.ConnexionReussie === "true") {
             modale_button.addEventListener("click", () => AffichageSecondeModale());
             modale_button.classList = "";
             modale_button.id = "modale_button";
+            debugger
         }
 
         // Chargement de la liste des projets depuis l'API
@@ -310,19 +321,40 @@ if (localStorage.ConnexionReussie === "true") {
                 imageElement.id = "image_" + `${projets[i].id}`;
                 figureElement.appendChild(imageElement);                    // Rattachement de l’image à figureElement (la balise figure)
 
-                const trashDiv = document.createElement("div");         // Création de l’élément img
+                const trashDiv = document.createElement("div");             // Création de l’élément img
                 trashDiv.className = "trash-div";
                 trashDiv.id = "div_" + `${projets[i].id}`;
-                trashDiv.innerHTML = '<i class="fa-solid fa-trash-can"></i>';                     // Configuration de la source de l’image avec l’indice i de la liste projets
-                figureElement.appendChild(trashDiv);                    // Rattachement de l’image à figureElement (la balise figure)
+                trashDiv.innerHTML = '<i class="fa-solid fa-trash-can"></i>';   // Configuration de la source de l’image avec l’indice i de la liste projets
+                figureElement.appendChild(trashDiv);                            // Rattachement de l’image à figureElement (la balise figure)
 
-                modale_main.appendChild(figureElement);                       // Rattachement de la balise figure à la balise des projets (<div class="gallery">)
+                modale_main.appendChild(figureElement);                         // Rattachement de la balise figure à la balise des projets (<div class="gallery">)
             }
         }
         UpdateProjetsModale(projets)
+
+        // Ajout d'un écouteur d'évènement sur chaque icone de suppression des projets
+        for (let i = 0; i < projets.length; i++) {
+            let trashDiv = document.getElementById('div_' + `${projets[i].id}`);
+            trashDiv.addEventListener("click", async () => {
+                try {
+                    const reponse_suppr = await fetch("http://localhost:5678/api/works/" + `${projets[i].id}`, {
+                        method: "DELETE",
+                        headers: {
+                            "accept": "*/*",
+                            "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+                        }
+                    });
+                    let figure_suppr = document.getElementById("figure_" + `${projets[i].id}`);
+                    figure_suppr.style.display = "none";
+                }
+                catch (error) {
+                    console.log(error);
+                }
+            });
+        }
     }
 
-    // * Mise en marche de la fermeture de la modale par un clic sur la croix de fermeture ou sur l'overlay :
+    // * Mise en marche de la fermeture de la modale (fonction FermetureDesModales)
     const overlay = document.getElementById("overlay");
     overlay.addEventListener("click", () => FermetureDesModales());
 
@@ -335,7 +367,7 @@ if (localStorage.ConnexionReussie === "true") {
         document.getElementById("modale").style.display = "none";
     }
 
-    // * Mise en marche du lien cliquable "Ajouter une photo" pour la gestion des projets (ouverture deuxième modale)
+    // * Mise en marche du lien cliquable "Ajouter une photo" pour l'ajout d'un projet (fonction AffichageSecondeModale)
     const modale_button = document.getElementById("modale_button");
     modale_button.addEventListener("click", () => AffichageSecondeModale())
 
@@ -370,7 +402,6 @@ if (localStorage.ConnexionReussie === "true") {
         // Chargement du contenu du "modale_main" :
         // 1ere partie : Chargement de la photo (encadré bleu)
         if (!document.getElementById('form_modale')) {
-            debugger;
             let form_modale = document.createElement("form");
             form_modale.id = "form_modale";
 
@@ -463,14 +494,39 @@ if (localStorage.ConnexionReussie === "true") {
                 valider_button.removeEventListener("click", () => AffichageSecondeModale());
                 valider_button.innerText = "Valider";
                 valider_button.classList.add('gris');
-                valider_button.addEventListener("click", () => ValidationNouveauProjet());
                 valider_button.id = "valider_button";
+                valider_button.addEventListener("click", () => ValidationNouveauProjet());
             }
 
-            function ValidationNouveauProjet() {
-                // Faire l'ajout et le call API
-                console.log("La validation fonctionne");
+            async function ValidationNouveauProjet() {
+                const imgInput = document.getElementById('AjouterPhotoInput')
+                const titreInput = document.getElementById('titre');
+                const categorieInput = document.getElementById('categorie');
+
+                if (imgInput.value !== '' && titreInput.value !== '' && categorieInput.value !== '') {
+                    try {
+                        const reponse_add = await fetch("http://localhost:5678/api/works/", {
+                            method: "POST",
+                            headers: {
+                                "accept": "application/json",
+                                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+                                "Content-Type": "multipart/form-data",
+                                "image": `${imgInput.value}`,
+                                "title": `${titreInput.value}`,
+                                "category": `${categorieInput.value}`
+                            }
+                        });
+                        AffichagePremiereModale();
+                    }
+                    catch (error) {
+                        console.log(error);
+                    }
+                }
+                else {
+                    console.log("Il manque des informations avant de pouvoir activer le bouton")
+                }
             }
+
 
             //  Couleur du bouton de validation : 
             const imgInput = document.getElementById('AjouterPhotoInput')
@@ -496,12 +552,13 @@ if (localStorage.ConnexionReussie === "true") {
 
     // * Suppression du résultat du test de connexion
     localStorage.removeItem("ConnexionReussie");
-}
 
+}
 else {
     // Échec de la connexion =
-    // * Génération des boutons filtres
-    genererBoutonsFiltres(categories)
+
+    // * Affichage des boutons "Filtres"
+    AffichageDesBoutonsFiltres(categories)
 
     // * Suppression du résultat du test de connexion
     localStorage.removeItem("ConnexionReussie");
