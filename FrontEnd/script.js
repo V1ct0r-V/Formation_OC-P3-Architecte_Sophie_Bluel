@@ -3,8 +3,8 @@
 // ÉTAPE 1.1 - 𝘙𝘦́𝘤𝘶𝘱𝘦́𝘳𝘢𝘵𝘪𝘰𝘯 𝘥𝘺𝘯𝘢𝘮𝘪𝘲𝘶𝘦 𝘥𝘦 𝘭𝘢 𝘭𝘪𝘴𝘵𝘦 𝘥𝘦𝘴 𝘱𝘳𝘰𝘫𝘦𝘵𝘴 𝘥𝘦𝘱𝘶𝘪𝘴 𝘭'𝘈𝘗𝘐
 
 // Chargement de la liste des projets depuis l'API
-const reponse_proj_init = await fetch("http://localhost:5678/api/works");
-const projets_init = await reponse_proj_init.json();
+const reponse_proj = await fetch("http://localhost:5678/api/works");
+let projets = await reponse_proj.json();
 
 // Définition de la fonction d'affichage dynamique des cartes projets sur la base des données de l'API
 function AffichageDynamiqueDesProjets(projets) {
@@ -16,6 +16,7 @@ function AffichageDynamiqueDesProjets(projets) {
     // Réaffichage de la section projet = remplacement des images fixes par les images dynamiques issues de l'API
     for (let i = 0; i < projets.length; i++) {
         const projetElement = document.createElement("figure");     // Création de la balise figure dédiée à un projet
+        projetElement.id = "projet_" + `${projets[i].id}`;
 
         const imageElement = document.createElement("img");         // Création de l’élément img
         imageElement.src = projets[i].imageUrl;                     // Configuration de la source de l’image avec l’indice i de la liste projets
@@ -30,7 +31,7 @@ function AffichageDynamiqueDesProjets(projets) {
         divProjet.appendChild(projetElement);                       // Rattachement de la balise figure à la balise des projets (<div class="gallery">)
     }
 }
-AffichageDynamiqueDesProjets(projets_init);
+AffichageDynamiqueDesProjets(projets);
 
 // ÉTAPE 1.2 - 𝘙𝘦́𝘢𝘭𝘪𝘴𝘢𝘵𝘪𝘰𝘯 𝘥𝘶 𝘧𝘪𝘭𝘵𝘳𝘦 𝘥𝘦𝘴 𝘵𝘳𝘢𝘷𝘢𝘶𝘹 : 𝘈𝘫𝘰𝘶𝘵 𝘥𝘦𝘴 𝘧𝘪𝘭𝘵𝘳𝘦𝘴 𝘱𝘰𝘶𝘳 𝘢𝘧𝘧𝘪𝘤𝘩𝘦𝘳 𝘭𝘦𝘴 𝘵𝘳𝘢𝘷𝘢𝘶𝘹 𝘱𝘢𝘳 𝘤𝘢𝘵𝘦́𝘨𝘰𝘳𝘪𝘦
 
@@ -171,20 +172,23 @@ function SeConnecter() {
 
             // Si la connexion réussie :
             if (reponse_log.ok) {
-                localStorage.setItem("ConnexionReussie", true);                                     // Stockage du statut "réussite" de la connexion
                 localStorage.setItem("authToken", data.token);                                      // Stockage du token de connexion
                 window.location.href = "index.html";                                                // Rechargement instantanée de la page principale en mode "Édition"
             }
 
             // Si la connexion échoue :
             else {
-                localStorage.setItem("ConnexionReussie", false);                                    // Stockage du statut "échec" de la connexion
                 localStorage.setItem("authToken", "");                                              // Stockage d'un token vide
                 let errorLoginMessage = document.getElementById("errorLoginMessage");
                 if (!errorLoginMessage) {                                                           // Cette fonction si permet l'affichage du message d'erreur 
                     const errorLoginMessage = document.createElement("p");                          // Elle évite aussi le suraffichage du message d'erreur en cas de spam du bouton "Se connecter"
                     errorLoginMessage.id = "errorLoginMessage";
-                    errorLoginMessage.innerText = "Erreur dans l’identifiant ou le mot de passe";
+                    if (reponse_log.status === 401) {
+                        errorLoginMessage.innerText = "Erreur dans l’identifiant ou le mot de passe";
+                    }
+                    if (reponse_log.status === 404) {
+                        errorLoginMessage.innerText = "Erreur 404 : Page non trouvée";
+                    }
                     const formElement = document.getElementById("form-login");
                     formElement.insertBefore(errorLoginMessage, formElement.lastChild);
                 }
@@ -205,7 +209,7 @@ function SeConnecter() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ÉTAPE 3 :  AJOUTER LA MODALE
 // Chargement de la page HTML en fonction du statut de connexion (voir fonction SeConnecter)
-if (localStorage.ConnexionReussie === "true") {
+if (localStorage.authToken) {
     // Succès de la connexion =
 
     // * Fermeture de la page de connexion "Login"
@@ -234,7 +238,7 @@ if (localStorage.ConnexionReussie === "true") {
     EditionModeBarText.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Mode édition';    // Ajout de l'icône et du texte dans le bandeau
     EditionModeBar.appendChild(EditionModeBarText);                 // Ajout du paragraphe dans la balise <div> du headers
 
-    // * Affichage : remplacement du bouton "Login par un bouton "Logout"
+    // * Affichage : remplacement du bouton "Login" par un bouton "Logout"
     let Logout = document.getElementById("menu-login");             // Sélection du bouton "login" de la barre de recherche
     Logout.id = "menu-logout";                                      // Attribution de l'id "logout"
     Logout.innerText = "logout";                                    // Changement du contenu en "logout"
@@ -244,7 +248,7 @@ if (localStorage.ConnexionReussie === "true") {
     logoutMenu.addEventListener("click", () => SeDeconnecter())
 
     function SeDeconnecter() {
-        localStorage.setItem("authToken", "");
+        localStorage.removeItem("authToken");
         window.location.href = "index.html";
     }
 
@@ -292,18 +296,13 @@ if (localStorage.ConnexionReussie === "true") {
         if (document.getElementById("valider_button")) {
             const modale_button = document.getElementById("valider_button");
             modale_button.innerText = "Ajouter une photo";
-            modale_button.removeEventListener("click", () => ValidationNouveauProjet());
-            modale_button.addEventListener("click", () => AffichageSecondeModale());
+            modale_button.removeEventListener("click", ValidationNouveauProjet);
+            modale_button.addEventListener("click", AffichageSecondeModale);
             modale_button.classList = "";
             modale_button.id = "modale_button";
-            debugger
         }
 
-        // Chargement de la liste des projets depuis l'API
-        const reponse_proj = await fetch("http://localhost:5678/api/works");
-        const projets = await reponse_proj.json();
-
-        // Définition de la fonction de mise à jour de l'affichage des cartes projets sur la base des données de l'API
+        // Mise à jour de l'affichage des cartes projets dans la modale sur la base des données de l'API (fonction UpdateProjetsModale)
         function UpdateProjetsModale(projets) {
             // Suppression de l'affichage du contenu initial de la section projet de la modale
             let modale_main = document.getElementById("modale_main");
@@ -337,15 +336,16 @@ if (localStorage.ConnexionReussie === "true") {
             let trashDiv = document.getElementById('div_' + `${projets[i].id}`);
             trashDiv.addEventListener("click", async () => {
                 try {
-                    const reponse_suppr = await fetch("http://localhost:5678/api/works/" + `${projets[i].id}`, {
+                    await fetch("http://localhost:5678/api/works/" + `${projets[i].id}`, {
                         method: "DELETE",
                         headers: {
                             "accept": "*/*",
                             "Authorization": `Bearer ${localStorage.getItem("authToken")}`
                         }
                     });
-                    let figure_suppr = document.getElementById("figure_" + `${projets[i].id}`);
-                    figure_suppr.style.display = "none";
+                    let figure_modale_suppr = document.getElementById("figure_" + `${projets[i].id}`);      // Sélection de la figure du projet supprimé
+                    figure_modale_suppr.style.display = "none";                                             // Désaffichage de la figure du projet supprimé pour qu'il n'apparaisse plus dans la modale
+                    projets.splice(i, 1);                                                                   // Suppression du projet sélectionné de la liste des projets en vue de sa mise à jour lors de la fermeture de la modale
                 }
                 catch (error) {
                     console.log(error);
@@ -363,13 +363,50 @@ if (localStorage.ConnexionReussie === "true") {
 
     function FermetureDesModales() {
         AffichagePremiereModale();
+        AffichageDynamiqueDesProjets(projets);
         document.getElementById("overlay").style.display = "none";
         document.getElementById("modale").style.display = "none";
     }
 
     // * Mise en marche du lien cliquable "Ajouter une photo" pour l'ajout d'un projet (fonction AffichageSecondeModale)
     const modale_button = document.getElementById("modale_button");
-    modale_button.addEventListener("click", () => AffichageSecondeModale())
+    modale_button.addEventListener("click", AffichageSecondeModale)
+
+    async function ValidationNouveauProjet() {
+        let imgInput = null;
+        if (window.photo) {
+            imgInput = window.photo;
+        }
+        const titreInput = document.getElementById('titre');
+        const categorieInput = document.getElementById('categorie');
+
+        if (imgInput !== '' && titreInput.value !== '' && categorieInput.value !== '') {
+            let variable = "@" + `${imgInput.name}` + ";type=" + `${imgInput.type}`;
+            let form_data = new FormData();
+            form_data.append("image", variable);
+            form_data.append("title", titreInput.value),
+            form_data.append("category", categorieInput.value)
+
+            console.log(form_data);
+            try {
+                await fetch("http://localhost:5678/api/works/", {
+                    method: "POST",
+                    headers: {
+                        "accept": "application/json",
+                        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+                    },
+                    body: form_data
+                });
+                //AffichagePremiereModale();
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+        else {
+            console.log("Il manque des informations avant de pouvoir activer le bouton")
+        }
+    }
 
     async function AffichageSecondeModale() {
 
@@ -378,181 +415,153 @@ if (localStorage.ConnexionReussie === "true") {
         modale_main.innerHTML = "";
 
         // Ajout de l'icone "Précédent"
-        if (!document.getElementById("previous_icon")) {
-            let modale_header = document.getElementById("modale_header");
-            let previous_icon = document.createElement("i");
-            previous_icon.id = "previous_icon";
-            previous_icon.className = "fa-solid fa-arrow-left";
-            modale_header.insertBefore(previous_icon, modale_header.firstChild)
+        let modale_header = document.getElementById("modale_header");
+        let previous_icon = document.createElement("i");
+        previous_icon.id = "previous_icon";
+        previous_icon.className = "fa-solid fa-arrow-left";
+        modale_header.insertBefore(previous_icon, modale_header.firstChild)
 
-            modale_header.style.justifyContent = "space-between";
+        modale_header.style.justifyContent = "space-between";
 
-            // Mise en marche du lien cliquable "Retour" pour revenir à la première modale
-            previous_icon.addEventListener("click", () => BoutonRetourModale());
+        // Mise en marche du lien cliquable "Retour" pour revenir à la première modale (fonction RetourModalePrecedente)
+        previous_icon.addEventListener("click", RetourModalePrecedente);
 
-            async function BoutonRetourModale() {
-                AffichagePremiereModale();
-            }
-
-            // Changement du titre de la modale
-            let titre = document.getElementById("modale_title_h3");
-            titre.innerText = "Ajout photo";
+        async function RetourModalePrecedente() {
+            AffichagePremiereModale();
         }
 
+        // Changement du titre de la modale
+        let titre = document.getElementById("modale_title_h3");
+        titre.innerText = "Ajout photo";
+
         // Chargement du contenu du "modale_main" :
-        // 1ere partie : Chargement de la photo (encadré bleu)
-        if (!document.getElementById('form_modale')) {
-            let form_modale = document.createElement("form");
-            form_modale.id = "form_modale";
+        // * 1ere partie : Chargement de la photo (encadré bleu)
 
-            let chargement_photo_div = document.createElement("div");
-            chargement_photo_div.id = "chargement_photo_div";
-            form_modale.appendChild(chargement_photo_div);
+        let form_modale = document.createElement("form");
+        form_modale.id = "form_modale";
 
-            let IconeImage = document.createElement("i");
-            IconeImage.id = "IconeImage";
-            IconeImage.className = "fa-regular fa-image";
-            chargement_photo_div.appendChild(IconeImage);
+        let chargement_photo_div = document.createElement("div");
+        chargement_photo_div.id = "chargement_photo_div";
+        form_modale.appendChild(chargement_photo_div);
 
-            let AjouterPhotoDiv = document.createElement("div");
-            AjouterPhotoDiv.id = "AjouterPhotoDiv";
-            chargement_photo_div.appendChild(AjouterPhotoDiv);
+        let IconeImage = document.createElement("i");
+        IconeImage.id = "IconeImage";
+        IconeImage.className = "fa-regular fa-image";
+        chargement_photo_div.appendChild(IconeImage);
 
-            let AjouterPhotoBouton = document.createElement("p");
-            AjouterPhotoBouton.id = "AjouterPhotoBouton";
-            AjouterPhotoBouton.innerText = "+ Ajouter une photo";
-            AjouterPhotoDiv.appendChild(AjouterPhotoBouton);
+        let AjouterPhotoDiv = document.createElement("div");
+        AjouterPhotoDiv.id = "AjouterPhotoDiv";
+        chargement_photo_div.appendChild(AjouterPhotoDiv);
 
-            let AjouterPhotoInput = document.createElement("input");
-            AjouterPhotoInput.id = "AjouterPhotoInput";
-            AjouterPhotoInput.type = "file";
-            AjouterPhotoDiv.appendChild(AjouterPhotoInput);
+        let AjouterPhotoBouton = document.createElement("p");
+        AjouterPhotoBouton.id = "AjouterPhotoBouton";
+        AjouterPhotoBouton.innerText = "+ Ajouter une photo";
+        AjouterPhotoDiv.appendChild(AjouterPhotoBouton);
 
-            let InfoTailleImage = document.createElement("p");
-            InfoTailleImage.id = "InfoTailleImage";
-            InfoTailleImage.innerText = "jpg,png : 4mo max";
-            chargement_photo_div.appendChild(InfoTailleImage);
+        let AjouterPhotoInput = document.createElement("input");
+        AjouterPhotoInput.id = "AjouterPhotoInput";
+        AjouterPhotoInput.type = "file";
+        AjouterPhotoInput.accept = "image/png, image/jpeg, image/jpg";
+        AjouterPhotoInput.required = true;
+        AjouterPhotoDiv.appendChild(AjouterPhotoInput);
 
-            let titre_label = document.createElement("label");
-            titre_label.setAttribute('for', "titre");
-            titre_label.innerText = "Titre";
-            form_modale.appendChild(titre_label);
+        let InfoTailleImage = document.createElement("p");
+        InfoTailleImage.id = "InfoTailleImage";
+        InfoTailleImage.innerText = "jpg,png : 4mo max";
+        chargement_photo_div.appendChild(InfoTailleImage);
 
-            // 2ème partie : Titre de la photo
-            let titre_input = document.createElement("input");
-            titre_input.setAttribute('type', "text");
-            titre_input.setAttribute('id', "titre");
-            titre_input.setAttribute('name', "titre");
-            titre_input.className = "form_input";
-            form_modale.appendChild(titre_input);
+        // * 2ème partie : Titre de la photo
+        let titre_label = document.createElement("label");
+        titre_label.setAttribute('for', "titre");
+        titre_label.innerText = "Titre";
+        form_modale.appendChild(titre_label);
 
-            // 3ème partie : Menu déroulant de la catégorie de la photo
-            let categorie_label = document.createElement("label");
-            categorie_label.innerText = "Catégorie";
-            form_modale.appendChild(categorie_label);
+        let titre_input = document.createElement("input");
+        titre_input.setAttribute('type', "text");
+        titre_input.setAttribute('id', "titre");
+        titre_input.setAttribute('name', "titre");
+        titre_input.required = true;
+        titre_input.className = "form_input";
+        form_modale.appendChild(titre_input);
 
-            let categorie_select = document.createElement("select");
-            categorie_select.setAttribute('name', "categorie");
-            categorie_select.setAttribute('id', "categorie");
-            categorie_select.className = "form_input";
-            form_modale.appendChild(categorie_select);
+        // * 3ème partie : Menu déroulant de la catégorie de la photo
+        let categorie_label = document.createElement("label");
+        categorie_label.innerText = "Catégorie";
+        form_modale.appendChild(categorie_label);
 
-            const reponse_cat = await fetch("http://localhost:5678/api/categories");
-            const categories = await reponse_cat.json();
+        let categorie_select = document.createElement("select");
+        categorie_select.setAttribute('name', "categorie");
+        categorie_select.setAttribute('id', "categorie");
+        categorie_select.className = "form_input";
+        categorie_select.required = true;
+        form_modale.appendChild(categorie_select);
 
-            let categorie_option_base = document.createElement("option");
-            categorie_option_base.setAttribute('value', "");
-            categorie_select.appendChild(categorie_option_base);
+        let categorie_option_base = document.createElement("option");
+        categorie_option_base.setAttribute('value', "");
+        categorie_select.appendChild(categorie_option_base);
 
-            for (let i = 0; i < categories.length; i++) {
-                let categories_option = document.createElement("option");
-                categories_option.setAttribute('value', categories[i].name);
-                categories_option.innerText = categories[i].name;
-                categorie_select.appendChild(categories_option);
-            }
+        for (let i = 0; i < categories.length; i++) {
+            let categories_option = document.createElement("option");
+            categories_option.setAttribute('value', categories[i].name);
+            categories_option.innerText = categories[i].name;
+            categorie_select.appendChild(categories_option);
+        }
 
-            modale_main.appendChild(form_modale);
+        modale_main.appendChild(form_modale);
 
-            // Mise en marche du bouton "+ AjoutPhoto"
-            AjouterPhotoInput.addEventListener("change", () => {
+        // Mise en marche du bouton "+ Ajouter une Photo"
+        AjouterPhotoInput.addEventListener("change", () => {
+            if (window.photo) { delete window.photo; }
+            const photo = AjouterPhotoInput.files[0];
+            if (photo.size <= 4 * 1024 * 1024) {
+
+                // Désaffichage des icônes
                 IconeImage.style.display = "none";
                 AjouterPhotoDiv.style.display = "none";
                 AjouterPhotoBouton.style.display = "none";
                 InfoTailleImage.style.display = "none";
 
+                // Ajout de l'aperçu de l'image
                 let reader = new FileReader();
-                reader.readAsDataURL(AjouterPhotoInput.files[0])
+                reader.readAsDataURL(photo)
                 reader.addEventListener("load", () => {
                     chargement_photo_div.innerHTML = `<img id="ApercuImage" src=${reader.result} alt=""/>`;
-                })
-            });
+                });
+                window.photo = photo;                       // Sauvegarde de la variable "photo" en tant que variable globale
+            }
+            else {
+                // Message d'erreur si le fichier est trop volumineux
+                InfoTailleImage.innerText = "Merci de sélectionner un fichier de 4mo maximum.";
+            }
+        });
 
+        // Changement du bouton "Ajout photo" => "Valider" et mise en marche (fonction ValidationNouveauprojet)
+        let valider_button = document.getElementById("modale_button");
+        valider_button.removeEventListener("click", AffichageSecondeModale);
+        valider_button.innerText = "Valider";
+        valider_button.classList.add('gris');
+        valider_button.id = "valider_button";
+        valider_button.addEventListener("click", ValidationNouveauProjet);
 
-            // Changement du bouton "Ajout photo" => "Valider"
-            if (document.getElementById("modale_button")) {
-                let valider_button = document.getElementById("modale_button");
-                valider_button.removeEventListener("click", () => AffichageSecondeModale());
-                valider_button.innerText = "Valider";
+        //  Changement de couleur du bouton de validation (fonction MAJCouleurBoutonValider)
+        const imgInput = document.getElementById('AjouterPhotoInput')
+        const titreInput = document.getElementById('titre');
+        const categoriesInput = document.getElementById('categorie');
+
+        function MAJCouleurBoutonValider() {
+            if (imgInput !== '' && titreInput.value !== '' && categoriesInput.value !== '') {
+                valider_button.classList.remove('gris');
+                valider_button.classList.add('vert');
+            } else {
+                valider_button.classList.remove('vert');
                 valider_button.classList.add('gris');
-                valider_button.id = "valider_button";
-                valider_button.addEventListener("click", () => ValidationNouveauProjet());
             }
-
-            async function ValidationNouveauProjet() {
-                const imgInput = document.getElementById('AjouterPhotoInput')
-                const titreInput = document.getElementById('titre');
-                const categorieInput = document.getElementById('categorie');
-
-                if (imgInput.value !== '' && titreInput.value !== '' && categorieInput.value !== '') {
-                    try {
-                        const reponse_add = await fetch("http://localhost:5678/api/works/", {
-                            method: "POST",
-                            headers: {
-                                "accept": "application/json",
-                                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
-                                "Content-Type": "multipart/form-data",
-                                "image": `${imgInput.value}`,
-                                "title": `${titreInput.value}`,
-                                "category": `${categorieInput.value}`
-                            }
-                        });
-                        AffichagePremiereModale();
-                    }
-                    catch (error) {
-                        console.log(error);
-                    }
-                }
-                else {
-                    console.log("Il manque des informations avant de pouvoir activer le bouton")
-                }
-            }
-
-
-            //  Couleur du bouton de validation : 
-            const imgInput = document.getElementById('AjouterPhotoInput')
-            const titreInput = document.getElementById('titre');
-            const categoriesInput = document.getElementById('categorie');
-            const valider_button = document.getElementById('valider_button');
-
-            function updateButtonColor() {
-                if (imgInput.value !== '' && titreInput.value !== '' && categoriesInput.value !== '') {
-                    valider_button.classList.remove('gris');
-                    valider_button.classList.add('vert');
-                } else {
-                    valider_button.classList.remove('vert');
-                    valider_button.classList.add('gris');
-                }
-            }
-
-            imgInput.addEventListener('input', updateButtonColor);
-            titreInput.addEventListener('input', updateButtonColor);
-            categoriesInput.addEventListener('input', updateButtonColor);
         }
+
+        imgInput.addEventListener('input', MAJCouleurBoutonValider);
+        titreInput.addEventListener('input', MAJCouleurBoutonValider);
+        categoriesInput.addEventListener('input', MAJCouleurBoutonValider);
     }
-
-    // * Suppression du résultat du test de connexion
-    localStorage.removeItem("ConnexionReussie");
-
 }
 else {
     // Échec de la connexion =
@@ -560,6 +569,6 @@ else {
     // * Affichage des boutons "Filtres"
     AffichageDesBoutonsFiltres(categories)
 
-    // * Suppression du résultat du test de connexion
-    localStorage.removeItem("ConnexionReussie");
+    // * MAJ éventuelle des projets
+    AffichageDynamiqueDesProjets(projets)
 }
