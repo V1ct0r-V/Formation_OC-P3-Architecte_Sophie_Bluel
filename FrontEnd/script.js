@@ -324,34 +324,31 @@ if (localStorage.authToken) {
                 trashDiv.className = "trash-div";
                 trashDiv.id = "div_" + `${projets[i].id}`;
                 trashDiv.innerHTML = '<i class="fa-solid fa-trash-can"></i>';   // Configuration de la source de l’image avec l’indice i de la liste projets
-                figureElement.appendChild(trashDiv);                            // Rattachement de l’image à figureElement (la balise figure)
+                figureElement.appendChild(trashDiv);
 
                 modale_main.appendChild(figureElement);                         // Rattachement de la balise figure à la balise des projets (<div class="gallery">)
+
+                // Ajout d'un écouteur d'évènement sur chaque icone de suppression des projets
+                trashDiv.addEventListener("click", async () => {
+                    try {
+                        await fetch("http://localhost:5678/api/works/" + `${projets[i].id}`, {
+                            method: "DELETE",
+                            headers: {
+                                "accept": "*/*",
+                                "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+                            }
+                        });
+                        let figure_modale_suppr = document.getElementById("figure_" + `${projets[i].id}`);      // Sélection de la figure du projet supprimé
+                        figure_modale_suppr.style.display = "none";                                             // Désaffichage de la figure du projet supprimé pour qu'il n'apparaisse plus dans la modale
+                        projets.splice(i, 1);                                                                   // Suppression du projet sélectionné de la liste des projets en vue de sa mise à jour lors de la fermeture de la modale
+                    }
+                    catch (error) {
+                        console.log(error);
+                    }
+                });
             }
         }
         UpdateProjetsModale(projets)
-
-        // Ajout d'un écouteur d'évènement sur chaque icone de suppression des projets
-        for (let i = 0; i < projets.length; i++) {
-            let trashDiv = document.getElementById('div_' + `${projets[i].id}`);
-            trashDiv.addEventListener("click", async () => {
-                try {
-                    await fetch("http://localhost:5678/api/works/" + `${projets[i].id}`, {
-                        method: "DELETE",
-                        headers: {
-                            "accept": "*/*",
-                            "Authorization": `Bearer ${localStorage.getItem("authToken")}`
-                        }
-                    });
-                    let figure_modale_suppr = document.getElementById("figure_" + `${projets[i].id}`);      // Sélection de la figure du projet supprimé
-                    figure_modale_suppr.style.display = "none";                                             // Désaffichage de la figure du projet supprimé pour qu'il n'apparaisse plus dans la modale
-                    projets.splice(i, 1);                                                                   // Suppression du projet sélectionné de la liste des projets en vue de sa mise à jour lors de la fermeture de la modale
-                }
-                catch (error) {
-                    console.log(error);
-                }
-            });
-        }
     }
 
     // * Mise en marche de la fermeture de la modale (fonction FermetureDesModales)
@@ -368,9 +365,11 @@ if (localStorage.authToken) {
         document.getElementById("modale").style.display = "none";
     }
 
-    // * Mise en marche du lien cliquable "Ajouter une photo" pour l'ajout d'un projet (fonction AffichageSecondeModale)
+    // * Mise en marche du lien cliquable "Ajouter une photo" pour l'ajout d'un projet (fonction AffichageSecondeModale et ValidationNouveauProjet)
     const modale_button = document.getElementById("modale_button");
     modale_button.addEventListener("click", AffichageSecondeModale)
+
+    console.log("Projets avant :", projets);
 
     async function ValidationNouveauProjet() {
         let imgInput = null;
@@ -381,15 +380,14 @@ if (localStorage.authToken) {
         const categorieInput = document.getElementById('categorie');
 
         if (imgInput !== '' && titreInput.value !== '' && categorieInput.value !== '') {
-            let variable = "@" + `${imgInput.name}` + ";type=" + `${imgInput.type}`;
             let form_data = new FormData();
-            form_data.append("image", variable);
+            form_data.append("image", imgInput);
             form_data.append("title", titreInput.value),
-            form_data.append("category", categorieInput.value)
+                form_data.append("category", categorieInput.value)
 
             console.log(form_data);
             try {
-                await fetch("http://localhost:5678/api/works/", {
+                let response = await fetch("http://localhost:5678/api/works/", {
                     method: "POST",
                     headers: {
                         "accept": "application/json",
@@ -397,9 +395,20 @@ if (localStorage.authToken) {
                     },
                     body: form_data
                 });
-                //AffichagePremiereModale();
+
+                // Message de la console en cas de succès de l'ajout d'un projet
+                const image_recue = await response.json();
+                console.log("L'image a bien été téléchargé :", image_recue);
+
+                // Ajout du nouveau projet à la liste des projets
+                projets[projets.length] = image_recue;
+
+                AffichagePremiereModale();
+
+                console.log("projets après:", projets);
             }
             catch (error) {
+                // Message de la console en cas d'échec de l'ajout d'un projet
                 console.log(error);
             }
         }
@@ -502,7 +511,7 @@ if (localStorage.authToken) {
 
         for (let i = 0; i < categories.length; i++) {
             let categories_option = document.createElement("option");
-            categories_option.setAttribute('value', categories[i].name);
+            categories_option.setAttribute('value', categories[i].id);
             categories_option.innerText = categories[i].name;
             categorie_select.appendChild(categories_option);
         }
