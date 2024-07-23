@@ -369,8 +369,6 @@ if (localStorage.authToken) {
     const modale_button = document.getElementById("modale_button");
     modale_button.addEventListener("click", AffichageSecondeModale)
 
-    console.log("Projets avant :", projets);
-
     async function ValidationNouveauProjet() {
         let imgInput = null;
         if (window.photo) {
@@ -522,7 +520,7 @@ if (localStorage.authToken) {
         AjouterPhotoInput.addEventListener("change", () => {
             if (window.photo) { delete window.photo; }
             const photo = AjouterPhotoInput.files[0];
-            if (photo.size <= 4 * 1024 * 1024) {
+            if (photo.size <= 4000000) { //En réalité 4 * 1024 * 1024
 
                 // Désaffichage des icônes
                 IconeImage.style.display = "none";
@@ -544,30 +542,32 @@ if (localStorage.authToken) {
             }
         });
 
-        // Changement du bouton "Ajout photo" => "Valider" et mise en marche (fonction ValidationNouveauprojet)
+        // Changement du bouton "Ajout photo" => "Valider" 
         let valider_button = document.getElementById("modale_button");
         valider_button.removeEventListener("click", AffichageSecondeModale);
         valider_button.innerText = "Valider";
         valider_button.classList.add('gris');
         valider_button.id = "valider_button";
-        valider_button.addEventListener("click", ValidationNouveauProjet);
 
         //  Changement de couleur du bouton de validation (fonction MAJCouleurBoutonValider)
         const imgInput = document.getElementById('AjouterPhotoInput')
         const titreInput = document.getElementById('titre');
         const categoriesInput = document.getElementById('categorie');
 
+        // Mise en marche (fonction ValidationNouveauprojet)
         function MAJCouleurBoutonValider() {
-            if (imgInput !== '' && titreInput.value !== '' && categoriesInput.value !== '') {
+            if (window.photo && titreInput.value !== '' && categoriesInput.value !== '') {
                 valider_button.classList.remove('gris');
                 valider_button.classList.add('vert');
+                valider_button.addEventListener("click", ValidationNouveauProjet);
             } else {
                 valider_button.classList.remove('vert');
                 valider_button.classList.add('gris');
+                valider_button.removeEventListener("click", ValidationNouveauProjet);
             }
         }
 
-        imgInput.addEventListener('input', MAJCouleurBoutonValider);
+        imgInput.addEventListener('change', MAJCouleurBoutonValider);
         titreInput.addEventListener('input', MAJCouleurBoutonValider);
         categoriesInput.addEventListener('input', MAJCouleurBoutonValider);
     }
