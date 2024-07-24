@@ -6,9 +6,9 @@
 const reponse_proj = await fetch("http://localhost:5678/api/works");
 let projets = await reponse_proj.json();
 
-// Définition de la fonction d'affichage dynamique des cartes projets sur la base des données de l'API
+// Définition de la fonction d'affichage dynamique des projets sur la page principale
 function AffichageDynamiqueDesProjets(projets) {
-    // Suppression de l'affichage du contenu initial de la section projet (class="gallery") 
+    // Suppression de l'affichage du contenu précédent de la galerie des projets
     let portfolioSection = document.getElementById("portfolio");
     let divProjet = portfolioSection.querySelector(".gallery");
     divProjet.innerHTML = "";
@@ -33,13 +33,14 @@ function AffichageDynamiqueDesProjets(projets) {
 }
 AffichageDynamiqueDesProjets(projets);
 
+
 // ÉTAPE 1.2 - 𝘙𝘦́𝘢𝘭𝘪𝘴𝘢𝘵𝘪𝘰𝘯 𝘥𝘶 𝘧𝘪𝘭𝘵𝘳𝘦 𝘥𝘦𝘴 𝘵𝘳𝘢𝘷𝘢𝘶𝘹 : 𝘈𝘫𝘰𝘶𝘵 𝘥𝘦𝘴 𝘧𝘪𝘭𝘵𝘳𝘦𝘴 𝘱𝘰𝘶𝘳 𝘢𝘧𝘧𝘪𝘤𝘩𝘦𝘳 𝘭𝘦𝘴 𝘵𝘳𝘢𝘷𝘢𝘶𝘹 𝘱𝘢𝘳 𝘤𝘢𝘵𝘦́𝘨𝘰𝘳𝘪𝘦
 
 // Chargement de la liste des catégories depuis l'API
 const reponse_cat = await fetch("http://localhost:5678/api/categories");
 const categories = await reponse_cat.json();
 
-// Définition de la fonction de filtrage des projets par catégories
+// Définition de la fonction de filtrage par catégories des projets de la page principale
 function FiltrerProjetsParCatégories(nom_de_la_categorie) {
     const projetsFiltrés = projets.filter(projets => projets.category.name === nom_de_la_categorie); // Filtrage de la liste des projets en fonction du nom de leurs catégories
     AffichageDynamiqueDesProjets(projetsFiltrés);                                                                  // Réaffichage des projets après filtrage
@@ -74,14 +75,14 @@ function AffichageDesBoutonsFiltres(categories) {
 // ÉTAPE 2 :  CODAGE DE LA PAGE DE CONNEXION
 // ÉTAPE 2.1 - 𝘐𝘯𝘵𝘦́𝘨𝘳𝘢𝘵𝘪𝘰𝘯 𝘥𝘶 𝘥𝘦𝘴𝘪𝘨𝘯 𝘥𝘦 𝘭𝘢 𝘱𝘢𝘨𝘦 𝘥𝘦 𝘧𝘰𝘳𝘮𝘶𝘭𝘢𝘪𝘳𝘦
 
-// Mise en marche du lien "Login" de la barre de navigation
+// Mise en marche du lien "Login" de la barre de navigation (contient la fonction AffichagePageLogin)
 const loginMenu = document.getElementById("menu-login");
-loginMenu.addEventListener("click", () => AffichageDeLaPageDeConnexion())
+loginMenu.addEventListener("click", () => AffichagePageLogin())
 
-// Définition de la fonction "AffichageDeLaPageDeConnexion" = 
+// Définition de la fonction "AffichagePageLogin" = 
 // * création de l'affichage de la page "Login"
 // * appel de la fonction "Se connecter" (voir description ci-dessous)
-function AffichageDeLaPageDeConnexion() {
+function AffichagePageLogin() {
     // Suppression de l'affichage du contenu <main>
     const mainElement = document.querySelector("main");
     mainElement.innerHTML = "";
@@ -212,36 +213,56 @@ function SeConnecter() {
 if (localStorage.authToken) {
     // Succès de la connexion =
 
-    // * Fermeture de la page de connexion "Login"
-    if (document.getElementById("div-login")) {
-        document.getElementById("div-login").style.display = "none";
+    // ÉTAPE 3.1 : 𝘊𝘳𝘦́𝘢𝘵𝘪𝘰𝘯 𝘥𝘦 𝘭𝘢 𝘧𝘦𝘯𝘦̂𝘵𝘳𝘦 𝘮𝘰𝘥𝘢𝘭𝘦 𝘦𝘵 𝘨𝘦𝘴𝘵𝘪𝘰𝘯 𝘥𝘦 𝘴𝘰𝘯 𝘢𝘱𝘱𝘢𝘳𝘪𝘵𝘪𝘰𝘯 𝘦𝘵 𝘥𝘪𝘴𝘱𝘢𝘳𝘪𝘵𝘪𝘰𝘯.
+    // * Affichage de la page après réussite de la connexion
+    function AffichagePageConnexionReussie() {
+        // * Fermeture de la page de connexion "Login"
+        if (document.getElementById("div-login")) {
+            document.getElementById("div-login").style.display = "none";
+        }
+
+        // * Affichage : création du bandeau "Mode édition" dans le header
+        const header = document.querySelector("header");                // Sélection du header existant
+        header.id = "HeaderEdition";                                    // Attribution d'un id pour lui attribuer un style différent du header initial
+
+        const EditionModeBar = document.createElement("div");           // Création du premier conteneur qui contiendra le bandeau
+        EditionModeBar.id = "EditionModeBar";                           // Attribution de son identifiant "EditionModeBar"
+        header.insertBefore(EditionModeBar, header.firstChild);         // Insertion du premier conteneur dans le header
+
+        const HeaderSecondDiv = document.createElement("div");          // Création du second conteneur qui contiendra le titre et la barre de navigation
+        HeaderSecondDiv.id = "HeaderSecondDiv";                         // Attribution de son identifiant "HeaderSecondDiv"
+        const h1Element = document.querySelector("h1");                 // Sélection du titre à mettre dans le conteneur
+        const navElement = document.querySelector("nav");               // Sélection de la barre de navigation à mettre dans le conteneur
+        HeaderSecondDiv.appendChild(h1Element);                         // Insertion du titre dans le second conteneur
+        HeaderSecondDiv.appendChild(navElement);                        // Insertion de la barre de navigation dans le second conteneur
+        header.appendChild(HeaderSecondDiv);                            // Insertion du second conteneur dans le header
+
+        const EditionModeBarText = document.createElement("p");         // Ajout d'un paragraphe pour afficher le texte "Mode édition" dans le bandeau
+        EditionModeBarText.id = "EditionModeBarText";
+        EditionModeBarText.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Mode édition';    // Ajout de l'icône et du texte dans le bandeau
+        EditionModeBar.appendChild(EditionModeBarText);                 // Ajout du paragraphe dans la balise <div> du headers
+
+        // * Affichage : remplacement du bouton "Login" par un bouton "Logout"
+        let Logout = document.getElementById("menu-login");             // Sélection du bouton "login" de la barre de recherche
+        Logout.id = "menu-logout";                                      // Attribution de l'id "logout"
+        Logout.innerText = "logout";                                    // Changement du contenu en "logout"
+
+        // * Affichage : création du bouton "Modifier" pour la gestion des projets
+        const MesProjetsModifierDiv = document.createElement("div");
+        MesProjetsModifierDiv.id = "MesProjetsModifierDiv";
+
+        const portfolioSection = document.getElementById("portfolio");
+        const MesProjets = portfolioSection.querySelector("h2");
+        MesProjetsModifierDiv.appendChild(MesProjets);
+
+        const ModifierProjets = document.createElement("p");
+        ModifierProjets.id = "ModifierProjets";
+        ModifierProjets.innerHTML = '<i class="fa-regular fa-pen-to-square"></i> modifier';
+        MesProjetsModifierDiv.appendChild(ModifierProjets);
+
+        portfolioSection.insertBefore(MesProjetsModifierDiv, portfolioSection.firstChild);
     }
-
-    // * Affichage : création du bandeau "Mode édition" dans le header
-    const header = document.querySelector("header");                // Sélection du header existant
-    header.id = "HeaderEdition";                                    // Attribution d'un id pour lui attribuer un style différent du header initial
-
-    const EditionModeBar = document.createElement("div");           // Création du premier conteneur qui contiendra le bandeau
-    EditionModeBar.id = "EditionModeBar";                           // Attribution de son identifiant "EditionModeBar"
-    header.insertBefore(EditionModeBar, header.firstChild);         // Insertion du premier conteneur dans le header
-
-    const HeaderSecondDiv = document.createElement("div");          // Création du second conteneur qui contiendra le titre et la barre de navigation
-    HeaderSecondDiv.id = "HeaderSecondDiv";                         // Attribution de son identifiant "HeaderSecondDiv"
-    const h1Element = document.querySelector("h1");                 // Sélection du titre à mettre dans le conteneur
-    const navElement = document.querySelector("nav");               // Sélection de la barre de navigation à mettre dans le conteneur
-    HeaderSecondDiv.appendChild(h1Element);                         // Insertion du titre dans le second conteneur
-    HeaderSecondDiv.appendChild(navElement);                        // Insertion de la barre de navigation dans le second conteneur
-    header.appendChild(HeaderSecondDiv);                            // Insertion du second conteneur dans le header
-
-    const EditionModeBarText = document.createElement("p");         // Ajout d'un paragraphe pour afficher le texte "Mode édition" dans le bandeau
-    EditionModeBarText.id = "EditionModeBarText";
-    EditionModeBarText.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Mode édition';    // Ajout de l'icône et du texte dans le bandeau
-    EditionModeBar.appendChild(EditionModeBarText);                 // Ajout du paragraphe dans la balise <div> du headers
-
-    // * Affichage : remplacement du bouton "Login" par un bouton "Logout"
-    let Logout = document.getElementById("menu-login");             // Sélection du bouton "login" de la barre de recherche
-    Logout.id = "menu-logout";                                      // Attribution de l'id "logout"
-    Logout.innerText = "logout";                                    // Changement du contenu en "logout"
+    AffichagePageConnexionReussie();
 
     // * Mise en marche du lien cliquable "Logout" de la barre de navigation (fonction SeDeconnecter)
     const logoutMenu = document.getElementById("menu-logout");
@@ -252,25 +273,10 @@ if (localStorage.authToken) {
         window.location.href = "index.html";
     }
 
-    // * Affichage : création du bouton "Modifier" pour la gestion des projets
-    const MesProjetsModifierDiv = document.createElement("div");
-    MesProjetsModifierDiv.id = "MesProjetsModifierDiv";
-
-    const portfolioSection = document.getElementById("portfolio");
-    const MesProjets = portfolioSection.querySelector("h2");
-    MesProjetsModifierDiv.appendChild(MesProjets);
-
-    const ModifierProjets = document.createElement("p");
-    ModifierProjets.id = "ModifierProjets";
-    ModifierProjets.innerHTML = '<i class="fa-regular fa-pen-to-square"></i> modifier';
-    MesProjetsModifierDiv.appendChild(ModifierProjets);
-
-    portfolioSection.insertBefore(MesProjetsModifierDiv, portfolioSection.firstChild);
-
-    // * Mise en marche du lien cliquable "Modifier" pour la gestion des projets (fonction AffichagePremiereModale)
+    // * Mise en marche du lien cliquable "Modifier" pour la gestion des projets (fonction AffichagePremiereModale / contient l' ÉTAPE 3.2 et 3.4)
     ModifierProjets.addEventListener("click", () => AffichagePremiereModale())
 
-    async function AffichagePremiereModale() {
+    async function AffichagePremiereModale() { // (contient l' ÉTAPE 3.2 et une partie de l'ÉTAPE 3.4) 
         // Affichage de l'overlay et de la modale
         const overlay = document.getElementById("overlay");
         overlay.style.display = "flex";
@@ -302,13 +308,14 @@ if (localStorage.authToken) {
             modale_button.id = "modale_button";
         }
 
-        // Mise à jour de l'affichage des cartes projets dans la modale sur la base des données de l'API (fonction UpdateProjetsModale)
-        function UpdateProjetsModale(projets) {
+        // ÉTAPE 3.2 : 𝘚𝘶𝘱𝘱𝘳𝘦𝘴𝘴𝘪𝘰𝘯 𝘥𝘦 𝘵𝘳𝘢𝘷𝘢𝘶𝘹 𝘦𝘹𝘪𝘴𝘵𝘢𝘯𝘵𝘴 (contient une partie de l'ÉTAPE 3.4)
+        // Ajout de la fonctionnalité de suppression (fonction SuppressionDeProjets)
+        function SuppressionDeProjets(projets) {
             // Suppression de l'affichage du contenu initial de la section projet de la modale
             let modale_main = document.getElementById("modale_main");
             modale_main.innerHTML = "";
 
-            // Réaffichage de la section projet = ajout des images dynamiques issues de l'API
+            // Réaffichage de la section projet = ajout dynamiques des projets de la modale
             for (let i = 0; i < projets.length; i++) {
 
                 const figureElement = document.createElement("figure");     // Création de la balise figure dédiée à un projet
@@ -348,7 +355,7 @@ if (localStorage.authToken) {
                 });
             }
         }
-        UpdateProjetsModale(projets)
+        SuppressionDeProjets(projets)
     }
 
     // * Mise en marche de la fermeture de la modale (fonction FermetureDesModales)
@@ -359,16 +366,17 @@ if (localStorage.authToken) {
     modale_cross.addEventListener("click", () => FermetureDesModales());
 
     function FermetureDesModales() {
-        AffichagePremiereModale();
-        AffichageDynamiqueDesProjets(projets);
-        document.getElementById("overlay").style.display = "none";
+        AffichagePremiereModale();                                  // Retour à la première modale en cas d'une éventuelle réouverture
+        AffichageDynamiqueDesProjets(projets);                      // Garantir la mise à jour de la gallerie en cas d'ajout(s) ou de suppression(s) de projet(s)
+        document.getElementById("overlay").style.display = "none";  // Désaffichage de 
         document.getElementById("modale").style.display = "none";
     }
 
-    // * Mise en marche du lien cliquable "Ajouter une photo" pour l'ajout d'un projet (fonction AffichageSecondeModale et ValidationNouveauProjet)
+    // * Mise en marche du lien cliquable "Ajouter une photo" pour l'ajout d'un projet (fonction AffichageSecondeModale et ValidationNouveauProjet / contient l'ÉTAPE 3.3 et 3.4)
     const modale_button = document.getElementById("modale_button");
     modale_button.addEventListener("click", AffichageSecondeModale)
 
+    // ÉTAPE 3.3 : 𝘌𝘯𝘷𝘰𝘪 𝘥’𝘶𝘯 𝘯𝘰𝘶𝘷𝘦𝘢𝘶 𝘱𝘳𝘰𝘫𝘦𝘵 𝘢𝘶 𝘣𝘢𝘤𝘬-𝘦𝘯𝘥 𝘷𝘪𝘢 𝘭𝘦 𝘧𝘰𝘳𝘮𝘶𝘭𝘢𝘪𝘳𝘦 𝘥𝘦 𝘭𝘢 𝘮𝘰𝘥𝘢𝘭𝘦 (contient une partie de l'ÉTAPE 3.4)
     async function ValidationNouveauProjet() {
         let imgInput = null;
         if (window.photo) {
@@ -378,13 +386,14 @@ if (localStorage.authToken) {
         const categorieInput = document.getElementById('categorie');
 
         if (imgInput !== '' && titreInput.value !== '' && categorieInput.value !== '') {
+            // Création du formulaire complet du nouveau projet pour envoyer notre requête API
             let form_data = new FormData();
             form_data.append("image", imgInput);
-            form_data.append("title", titreInput.value),
-                form_data.append("category", categorieInput.value)
+            form_data.append("title", titreInput.value);
+            form_data.append("category", categorieInput.value);
 
-            console.log(form_data);
             try {
+                // Envoi de la requête de nouveau projet
                 let response = await fetch("http://localhost:5678/api/works/", {
                     method: "POST",
                     headers: {
@@ -398,25 +407,18 @@ if (localStorage.authToken) {
                 const image_recue = await response.json();
                 console.log("L'image a bien été téléchargé :", image_recue);
 
-                // Ajout du nouveau projet à la liste des projets
-                projets[projets.length] = image_recue;
-
-                AffichagePremiereModale();
-
-                console.log("projets après:", projets);
+                // ÉTAPE 3.4 : 𝘛𝘳𝘢𝘪𝘵𝘦𝘮𝘦𝘯𝘵 𝘥𝘦 𝘭𝘢 𝘳𝘦́𝘱𝘰𝘯𝘴𝘦 𝘥𝘦 𝘭’𝘈𝘗𝘐 𝘱𝘰𝘶𝘳 𝘢𝘧𝘧𝘪𝘤𝘩𝘦𝘳 𝘥𝘺𝘯𝘢𝘮𝘪𝘲𝘶𝘦𝘮𝘦𝘯𝘵 𝘭𝘢 𝘯𝘰𝘶𝘷𝘦𝘭𝘭𝘦 𝘪𝘮𝘢𝘨𝘦 𝘥𝘦 𝘭𝘢 𝘮𝘰𝘥𝘢𝘭𝘦
+                projets[projets.length] = image_recue;  // Ajout du nouveau projet à la suite de la liste des projets
+                AffichagePremiereModale();              // MAJ de la gallerie des projets de la modale par réaffichage de la première modale
             }
             catch (error) {
                 // Message de la console en cas d'échec de l'ajout d'un projet
                 console.log(error);
             }
         }
-        else {
-            console.log("Il manque des informations avant de pouvoir activer le bouton")
-        }
     }
 
     async function AffichageSecondeModale() {
-
         // Suppression du contenu du modale_main
         let modale_main = document.getElementById("modale_main");
         modale_main.innerHTML = "";
@@ -431,17 +433,13 @@ if (localStorage.authToken) {
         modale_header.style.justifyContent = "space-between";
 
         // Mise en marche du lien cliquable "Retour" pour revenir à la première modale (fonction RetourModalePrecedente)
-        previous_icon.addEventListener("click", RetourModalePrecedente);
-
-        async function RetourModalePrecedente() {
-            AffichagePremiereModale();
-        }
+        previous_icon.addEventListener("click", AffichagePremiereModale);
 
         // Changement du titre de la modale
         let titre = document.getElementById("modale_title_h3");
         titre.innerText = "Ajout photo";
 
-        // Chargement du contenu du "modale_main" :
+        // Affichage du contenu du "modale_main" :
         // * 1ere partie : Chargement de la photo (encadré bleu)
 
         let form_modale = document.createElement("form");
@@ -516,9 +514,11 @@ if (localStorage.authToken) {
 
         modale_main.appendChild(form_modale);
 
-        // Mise en marche du bouton "+ Ajouter une Photo"
+        // Mise en marche du bouton "+ Ajouter une Photo" (aperçu de l'image ou message d'erreur)
         AjouterPhotoInput.addEventListener("change", () => {
-            if (window.photo) { delete window.photo; }
+            if (window.photo) {
+                delete window.photo;
+            }
             const photo = AjouterPhotoInput.files[0];
             if (photo.size <= 4000000) { //En réalité 4 * 1024 * 1024
 
@@ -542,19 +542,18 @@ if (localStorage.authToken) {
             }
         });
 
-        // Changement du bouton "Ajout photo" => "Valider" 
+        // Changement du bouton principal : "Ajout photo" devient "Valider" 
         let valider_button = document.getElementById("modale_button");
         valider_button.removeEventListener("click", AffichageSecondeModale);
         valider_button.innerText = "Valider";
         valider_button.classList.add('gris');
         valider_button.id = "valider_button";
 
-        //  Changement de couleur du bouton de validation (fonction MAJCouleurBoutonValider)
+        //  Changement de couleur et mise en marche du bouton "Valider" (fonction MAJCouleurBoutonValider)
         const imgInput = document.getElementById('AjouterPhotoInput')
         const titreInput = document.getElementById('titre');
         const categoriesInput = document.getElementById('categorie');
 
-        // Mise en marche (fonction ValidationNouveauprojet)
         function MAJCouleurBoutonValider() {
             if (window.photo && titreInput.value !== '' && categoriesInput.value !== '') {
                 valider_button.classList.remove('gris');
@@ -574,7 +573,6 @@ if (localStorage.authToken) {
 }
 else {
     // Échec de la connexion =
-
     // * Affichage des boutons "Filtres"
     AffichageDesBoutonsFiltres(categories)
 
