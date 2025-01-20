@@ -13,7 +13,7 @@ Un portfolio interactif pour une architecte d’intérieur.
 1. Cloner le dépôt :
 
    ```bash
-   git clone https://github.com/votre-repo/portfolio-architecte.git
+   git clone https://github.com/V1ct0r-V/Formation_OC-P3-Architecte_Sophie_Bluel
    cd portfolio-architecte
    ```
 
